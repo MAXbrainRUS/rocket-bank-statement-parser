@@ -1,0 +1,9 @@
+.idea
+.settings
+*.iml
+*.pdf
+*.xls
+KeyWordsToCategoryMap.json
+.project
+.classpath
+target
