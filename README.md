@@ -8,6 +8,6 @@ For this just add file `KeyWordsToCategoryMap.json` with map keyword->category
 ```json
 {
   "Some key word/phrase": "Name of category",
-  "Some other key word/phrase": "Name of category",
+  "Some other key word/phrase": "Name of category"
 }
 ```
