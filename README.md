@@ -1,5 +1,7 @@
 # rocket-bank-statement-parser
 
+[![Build Status](https://travis-ci.org/MAXbrainRUS/rocket-bank-statement-parser.svg?branch=master)](https://travis-ci.org/MAXbrainRUS/rocket-bank-statement-parser)
+
 "Rocket parser" is a simple program provide converting Rocket Bank's (https://rocketbank.ru/) statement from .pdf format to .xls Excel format.
 It useful for import your transaction to some programs for budget accounting.
 
