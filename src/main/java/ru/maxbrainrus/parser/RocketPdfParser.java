@@ -40,7 +40,8 @@ public class RocketPdfParser {
                 .filter(s -> !s.startsWith("Дата Описание Расход"))
                 .filter(s -> !s.startsWith("Итог:"))
                 .filter(s -> !s.startsWith("Руководитель отдела"))
-                .filter(s -> !s.matches("([А-ЯЁ][А-ЯЁа-яё]* ?){2,3}")) // ФИО руководителя отдела
+                .filter(s -> !s.startsWith("Специалист"))
+                .filter(s -> !s.matches("([А-ЯЁ][А-ЯЁа-яё]* ?){2,3}")) // ФИО руководителя отдела или специалиста
                 .filter(s -> !s.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) // date at the end of document
                 .filter(s -> !s.matches("№ [\\d\\-/A-Za-z]+")); // Id of document
     }
