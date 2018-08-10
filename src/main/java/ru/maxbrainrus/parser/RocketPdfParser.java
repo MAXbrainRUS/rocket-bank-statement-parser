@@ -55,7 +55,8 @@ public class RocketPdfParser {
                 .map(this::cutDateToRow)
                 .map(this::cutAmountToRow)
                 .map(this::cutOperationDateToRow)
-                .map(this::cutGurbage)
+                .map(this::cutGarbage)
+                .map(this::cutAllAsDescriptionToRow)
                 .map(sourceDest -> sourceDest.getTransactionData().build())
                 .map(categoryFiller::fillCategory)
                 .peek(System.out::println)
@@ -87,7 +88,7 @@ public class RocketPdfParser {
         return accumulator;
     }
 
-    private SourceDest cutGurbage(SourceDest sourceDest) {
+    private SourceDest cutGarbage(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
         s = s
@@ -95,6 +96,12 @@ public class RocketPdfParser {
                 .replaceAll(",на сумму:-?\\d+[ \\d]*(\\.\\d+)?\\(\\d+\\)", "") // amount repeated in description
                 .replaceAll(",карта \\d+\\*+\\d+", "") // card number
                 .trim();
+        return new SourceDest(s, builder);
+    }
+
+    private SourceDest cutAllAsDescriptionToRow(SourceDest sourceDest) {
+        String s = sourceDest.getTransactionText();
+        Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
         builder.description(s);
         return new SourceDest(s, builder);
     }
