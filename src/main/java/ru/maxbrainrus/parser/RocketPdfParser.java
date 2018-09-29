@@ -93,8 +93,8 @@ public class RocketPdfParser {
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
         s = s
                 .replaceAll(" {2,}", " ") // extra spaces after deletions
-                .replaceAll(",на сумму:-?\\d+[ \\d]*(\\.\\d+)?\\(\\d+\\)", "") // amount repeated in description
-                .replaceAll(",карта \\d+\\*+\\d+", "") // card number
+                .replaceAll(", ?на сумму: -?\\d+[ \\d]*(\\.\\d+)?\\([\\dRUB]{1,3}\\)", "") // amount repeated in description
+                .replaceAll(", ?карта \\d+[\\*x]+\\d+", "") // card number
                 .trim();
         return new SourceDest(s, builder);
     }
@@ -109,7 +109,7 @@ public class RocketPdfParser {
     private SourceDest cutOperationDateToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
-        Matcher operationDateMatcher = Pattern.compile(",дата +операции:(\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2})").matcher(s);
+        Matcher operationDateMatcher = Pattern.compile(", ?дата +операции: ?(\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2})").matcher(s);
         if (operationDateMatcher.find()) {
             builder.operationDate(LocalDateTime.parse(operationDateMatcher.group(1), DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             s = excludeStringPart(s, operationDateMatcher);
