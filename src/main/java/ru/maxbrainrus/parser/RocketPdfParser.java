@@ -120,7 +120,7 @@ public class RocketPdfParser {
     private SourceDest cutAmountToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
-        Pattern amountPattern = Pattern.compile("(-?\\d+[ \\d]*(\\.\\d+)?) RUR");
+        Pattern amountPattern = Pattern.compile(" (-?\\d+[ \\d]*(\\.\\d+)?) RUR");
         Matcher amountMatcher = amountPattern.matcher(s);
         if (amountMatcher.find()) {
             String amountStringValue = amountMatcher.group(1).replace(" ", "");
