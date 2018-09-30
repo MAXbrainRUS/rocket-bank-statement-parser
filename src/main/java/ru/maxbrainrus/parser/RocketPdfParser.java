@@ -2,11 +2,8 @@ package ru.maxbrainrus.parser;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.Value;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -156,19 +153,22 @@ public class RocketPdfParser {
         return s.substring(0, matcher.start()) + s.substring(matcher.end());
     }
 
-    @SneakyThrows
     public List<Transaction> parsePdf(String fileName) {
-        PdfReader reader = new PdfReader(fileName);
-        int numberOfPages = reader.getNumberOfPages();
-        List<Transaction> res = new ArrayList<>();
-        for (int i = 1; i <= numberOfPages; i++) {
-            String textFromPage = PdfTextExtractor.getTextFromPage(reader, i);
-            // transaction can't be separated on several pdf pages
-            List<Transaction> transactions = parseTextOfPage(textFromPage);
-            res.addAll(transactions);
+        try (AutoClosablePdfReader reader = new AutoClosablePdfReader(fileName)) {
+            int numberOfPages = reader.getNumberOfPages();
+            List<Transaction> res = new ArrayList<>();
+            for (int i = 1; i <= numberOfPages; i++) {
+                String textFromPage = PdfTextExtractor.getTextFromPage(reader, i);
+                // transaction can't be separated on several pdf pages
+                List<Transaction> transactions = parseTextOfPage(textFromPage);
+                res.addAll(transactions);
+            }
+            postEditing(res);
+            return res;
+        } catch (IOException e) {
+            System.err.println("An error occurred while read pdf source report.");
+            throw new RuntimeException(e);
         }
-        postEditing(res);
-        return res;
     }
 
     private void postEditing(List<Transaction> res) {
@@ -191,10 +191,35 @@ public class RocketPdfParser {
     }
 }
 
-@Value
-@AllArgsConstructor
-@Getter
 class SourceDest {
     private String transactionText;
     private Transaction.TransactionBuilder transactionData;
+
+    public SourceDest(String transactionText, Transaction.TransactionBuilder transactionData) {
+        this.transactionText = transactionText;
+        this.transactionData = transactionData;
+    }
+
+    public String getTransactionText() {
+        return transactionText;
+    }
+
+    public Transaction.TransactionBuilder getTransactionData() {
+        return transactionData;
+    }
+
+    @Override
+    public String toString() {
+        return "SourceDest{" +
+                "transactionText='" + transactionText + '\'' +
+                ", transactionData=" + transactionData +
+                '}';
+    }
+}
+
+class AutoClosablePdfReader extends PdfReader implements AutoCloseable {
+
+    public AutoClosablePdfReader(String filename) throws IOException {
+        super(filename);
+    }
 }

@@ -1,15 +1,19 @@
 package ru.maxbrainrus.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class KeyWordsToCategoryMapJsonParser {
-    @SneakyThrows
+    @SuppressWarnings("unchecked")
     public static Map<String, String> parseConfigJson(File config) {
-        return new ObjectMapper().readValue(config, HashMap.class);
+        try {
+            return new ObjectMapper().readValue(config, HashMap.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

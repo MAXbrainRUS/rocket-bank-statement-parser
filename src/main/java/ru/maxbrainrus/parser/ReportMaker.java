@@ -1,6 +1,5 @@
 package ru.maxbrainrus.parser;
 
-import lombok.SneakyThrows;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -14,7 +13,6 @@ public class ReportMaker {
     private static final String fmt = "dd/MM/yyyy";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
 
-    @SneakyThrows
     public static void createReport(List<Transaction> transactions, String filename) {
         try (HSSFWorkbook workbook = new HSSFWorkbook()) {
             HSSFSheet sheet = workbook.createSheet("FirstSheet");
@@ -42,6 +40,9 @@ public class ReportMaker {
             try (FileOutputStream fileOut = new FileOutputStream(filename)) {
                 workbook.write(fileOut);
             }
+        } catch (Exception e) {
+            System.err.println("An error occurred while generating the excel report.");
+            throw new RuntimeException(e);
         }
         System.out.println("Your excel file has been generated!");
     }
