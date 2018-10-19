@@ -90,7 +90,7 @@ public class RocketPdfParser {
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
         s = s
                 .replaceAll(" {2,}", " ") // extra spaces after deletions
-                .replaceAll(", ?на сумму: -?\\d+[ \\d]*(\\.\\d+)?\\([\\dRUB]{1,3}\\)", "") // amount repeated in description
+                .replaceAll(", ?на сумму: -?\\d+[ \\d]*([\\.,]\\d+)?\\([\\dRUB]{1,3}\\)", "") // amount repeated in description
                 .replaceAll(", ?карта \\d+[\\*x]+\\d+", "") // card number
                 .trim();
         return new SourceDest(s, builder);
@@ -117,10 +117,12 @@ public class RocketPdfParser {
     private SourceDest cutAmountToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
-        Pattern amountPattern = Pattern.compile(" (-?\\d+[ \\d]*(\\.\\d+)?) RUR");
+        Pattern amountPattern = Pattern.compile(" (-?\\d+[ \\d]*([\\.,]\\d+)?) RUR");
         Matcher amountMatcher = amountPattern.matcher(s);
         if (amountMatcher.find()) {
-            String amountStringValue = amountMatcher.group(1).replace(" ", "");
+            String amountStringValue = amountMatcher.group(1)
+                    .replace(" ", "")
+                    .replace(",", ".");
             BigDecimal amount = new BigDecimal(amountStringValue);
             if (amount.signum() > 0) {
                 builder.amountArrival(amount);
