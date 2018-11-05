@@ -12,7 +12,7 @@ public class KeyWordCategoryFiller {
     public Transaction fillCategory(Transaction transaction) {
         for (Map.Entry<String, String> entry : keyWordsToCategoryMap.entrySet()) {
             if (transaction.getDescription().contains(entry.getKey())) {
-                return transaction.toBuilder().category(entry.getValue()).build();
+                return transaction.toBuilder().setCategory(entry.getValue()).build();
             }
         }
         return transaction;
