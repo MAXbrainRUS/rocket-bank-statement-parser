@@ -99,7 +99,7 @@ public class RocketPdfParser {
     private SourceDest cutAllAsDescriptionToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
-        builder.description(s);
+        builder.setDescription(s);
         return new SourceDest(s, builder);
     }
 
@@ -108,7 +108,7 @@ public class RocketPdfParser {
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
         Matcher operationDateMatcher = Pattern.compile(", ?дата +операции: ?(\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2})").matcher(s);
         if (operationDateMatcher.find()) {
-            builder.operationDate(LocalDateTime.parse(operationDateMatcher.group(1), DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            builder.setOperationDate(LocalDateTime.parse(operationDateMatcher.group(1), DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             s = excludeStringPart(s, operationDateMatcher);
         }
         return new SourceDest(s, builder);
@@ -125,9 +125,9 @@ public class RocketPdfParser {
                     .replace(",", ".");
             BigDecimal amount = new BigDecimal(amountStringValue);
             if (amount.signum() > 0) {
-                builder.amountArrival(amount);
+                builder.setAmountArrival(amount);
             } else {
-                builder.amountExpenditure(amount.abs());
+                builder.setAmountExpenditure(amount.abs());
             }
             s = excludeStringPart(s, amountMatcher);
         }
@@ -145,7 +145,7 @@ public class RocketPdfParser {
         Transaction.TransactionBuilder builder = sourceDest.getTransactionData();
         Matcher dateMatcher = Pattern.compile("^\\d{2}\\.\\d{2}\\.\\d{4}").matcher(s);
         if (dateMatcher.find()) {
-            builder.date(LocalDate.parse(dateMatcher.group(), DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            builder.setDate(LocalDate.parse(dateMatcher.group(), DateTimeFormatter.ofPattern("dd.MM.yyyy")));
             s = excludeStringPart(s, dateMatcher);
         }
         return new SourceDest(s, builder);
@@ -178,7 +178,7 @@ public class RocketPdfParser {
         // fill dates from upper transactions
         for (int i = 1; i < res.size(); i++) {
             if (res.get(i).getDate() == null) {
-                res.set(i, res.get(i).toBuilder().date(res.get(i - 1).getDate()).build());
+                res.set(i, res.get(i).toBuilder().setDate(res.get(i - 1).getDate()).build());
             }
         }
         // If transaction date has operation date it will be more suit.
@@ -186,7 +186,7 @@ public class RocketPdfParser {
         for (int i = 0; i < res.size(); i++) {
             LocalDateTime operationDate = res.get(i).getOperationDate();
             if (operationDate != null) {
-                res.set(i, res.get(i).toBuilder().date(operationDate.toLocalDate()).build());
+                res.set(i, res.get(i).toBuilder().setDate(operationDate.toLocalDate()).build());
             }
         }
         res.sort(Comparator.comparing(Transaction::getDate));

@@ -1,142 +1,62 @@
 package ru.maxbrainrus.parser;
 
+import com.google.auto.value.AutoValue;
+
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class Transaction {
+@AutoValue
+public abstract class Transaction {
+
+    public static TransactionBuilder builder() {
+        return new AutoValue_Transaction.Builder();
+    }
+
     /**
      * Date of operation.
      * The same as operation date, if it has is source pdf.
      */
-    private final LocalDate date;
-    /**
-     * Some additional data of transaction.
-     */
-    private final String description;
+    @Nullable
+    public abstract LocalDate getDate();
+
+    @Nullable
+    public abstract String getDescription();
+
     /**
      * Temporal field.
      * Date of operation in description of source pdf.
      */
-    private final LocalDateTime operationDate;
-    private final BigDecimal amountArrival;
-    private final BigDecimal amountExpenditure;
-    private final String category;
+    @Nullable
+    public abstract LocalDateTime getOperationDate();
 
-    public Transaction(LocalDate date, String description, LocalDateTime operationDate, BigDecimal amountArrival, BigDecimal amountExpenditure, String category) {
-        this.date = date;
-        this.description = description;
-        this.operationDate = operationDate;
-        this.amountArrival = amountArrival;
-        this.amountExpenditure = amountExpenditure;
-        this.category = category;
-    }
+    @Nullable
+    public abstract BigDecimal getAmountArrival();
 
-    public static TransactionBuilder builder() {
-        return new TransactionBuilder();
-    }
+    @Nullable
+    public abstract BigDecimal getAmountExpenditure();
 
-    public LocalDate getDate() {
-        return this.date;
-    }
+    @Nullable
+    public abstract String getCategory();
 
-    public String getDescription() {
-        return this.description;
-    }
+    public abstract TransactionBuilder toBuilder();
 
-    public LocalDateTime getOperationDate() {
-        return this.operationDate;
-    }
+    @AutoValue.Builder
+    abstract static class TransactionBuilder {
 
-    public BigDecimal getAmountArrival() {
-        return this.amountArrival;
-    }
+        public abstract Transaction.TransactionBuilder setDate(LocalDate date);
 
-    public BigDecimal getAmountExpenditure() {
-        return this.amountExpenditure;
-    }
+        public abstract Transaction.TransactionBuilder setDescription(String description);
 
-    public String getCategory() {
-        return this.category;
-    }
+        public abstract Transaction.TransactionBuilder setOperationDate(LocalDateTime operationDate);
 
-    @Override
-    public String toString() {
-        return "Transaction{" +
-                "date=" + date +
-                ", description='" + description + '\'' +
-                ", operationDate=" + operationDate +
-                ", amountArrival=" + amountArrival +
-                ", amountExpenditure=" + amountExpenditure +
-                ", category='" + category + '\'' +
-                '}';
-    }
+        public abstract Transaction.TransactionBuilder setAmountArrival(BigDecimal amountArrival);
 
-    public TransactionBuilder toBuilder() {
-        return new TransactionBuilder()
-                .date(this.date)
-                .description(this.description)
-                .operationDate(this.operationDate)
-                .amountArrival(this.amountArrival)
-                .amountExpenditure(this.amountExpenditure)
-                .category(this.category);
-    }
+        public abstract Transaction.TransactionBuilder setAmountExpenditure(BigDecimal amountExpenditure);
 
-    public static class TransactionBuilder {
-        private LocalDate date;
-        private String description;
-        private LocalDateTime operationDate;
-        private BigDecimal amountArrival;
-        private BigDecimal amountExpenditure;
-        private String category;
+        public abstract Transaction.TransactionBuilder setCategory(String category);
 
-        TransactionBuilder() {
-        }
-
-        public Transaction.TransactionBuilder date(LocalDate date) {
-            this.date = date;
-            return this;
-        }
-
-        public Transaction.TransactionBuilder description(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public Transaction.TransactionBuilder operationDate(LocalDateTime operationDate) {
-            this.operationDate = operationDate;
-            return this;
-        }
-
-        public Transaction.TransactionBuilder amountArrival(BigDecimal amountArrival) {
-            this.amountArrival = amountArrival;
-            return this;
-        }
-
-        public Transaction.TransactionBuilder amountExpenditure(BigDecimal amountExpenditure) {
-            this.amountExpenditure = amountExpenditure;
-            return this;
-        }
-
-        public Transaction.TransactionBuilder category(String category) {
-            this.category = category;
-            return this;
-        }
-
-        public Transaction build() {
-            return new Transaction(date, description, operationDate, amountArrival, amountExpenditure, category);
-        }
-
-        @Override
-        public String toString() {
-            return "TransactionBuilder{" +
-                    "date=" + date +
-                    ", description='" + description + '\'' +
-                    ", operationDate=" + operationDate +
-                    ", amountArrival=" + amountArrival +
-                    ", amountExpenditure=" + amountExpenditure +
-                    ", category='" + category + '\'' +
-                    '}';
-        }
+        public abstract Transaction build();
     }
 }
