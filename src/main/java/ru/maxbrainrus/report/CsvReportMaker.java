@@ -6,6 +6,7 @@ import ru.maxbrainrus.migrate.MoneyTransaction;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -35,8 +36,8 @@ public class CsvReportMaker {
             csvPrinter.printRecord(
                     transaction.getDate(),
                     transaction.getOperationType(),
-                    transaction.getAmountArrival(),
-                    transaction.getAmountExpenditure(),
+                    nullIfZero(transaction.getAmountArrival()),
+                    nullIfZero(transaction.getAmountExpenditure()),
                     transaction.getCategory(),
                     transaction.getDescription(),
                     transaction.getTargetWallet()
@@ -44,6 +45,10 @@ public class CsvReportMaker {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static BigDecimal nullIfZero(BigDecimal amount) {
+        return amount.signum() == 0 ? null : amount;
     }
 
     private static void withOpenCsvToWrite(String filename, CSVFormat format, Consumer<CSVPrinter> consumer) {
