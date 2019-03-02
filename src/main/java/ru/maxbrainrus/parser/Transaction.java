@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AutoValue
+@Deprecated
 public abstract class Transaction {
 
     public static TransactionBuilder builder() {
