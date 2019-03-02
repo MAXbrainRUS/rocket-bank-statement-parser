@@ -1,5 +1,7 @@
 package ru.maxbrainrus.parser;
 
+import ru.maxbrainrus.report.XlsReportMaker;
+
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +11,6 @@ public class RocketParserController {
         KeyWordCategoryFiller categoryFiller = new KeyWordCategoryFiller(keyWordsToCategoryMap);
         RocketPdfParser rocketPdfParser = new RocketPdfParser(categoryFiller);
         List<Transaction> transactions = rocketPdfParser.parsePdf(inputDataFileName);
-        ReportMaker.createReport(transactions, reportFileName);
+        XlsReportMaker.createReport(transactions, reportFileName);
     }
 }

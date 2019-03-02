@@ -1,15 +1,16 @@
-package ru.maxbrainrus.parser;
+package ru.maxbrainrus.report;
 
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import ru.maxbrainrus.parser.Transaction;
 
 import java.io.FileOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-public class ReportMaker {
+public class XlsReportMaker {
     private static final String fmt = "dd/MM/yyyy";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
 

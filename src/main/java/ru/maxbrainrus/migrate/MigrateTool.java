@@ -6,6 +6,7 @@ import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.maxbrainrus.report.CsvReportMaker;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +28,7 @@ public class MigrateTool {
     public static final Pattern WALLET_PATTERN = Pattern.compile("\\[([^\\[\\]]+)\\]");
     private static final Logger log = LoggerFactory.getLogger(MigrateTool.class);
     private static final Set<OperationType> OPERATION_TYPES_WITH_CATEGORY = EnumSet.of(OperationType.INCOME, OperationType.EXPENDITURE);
+    public static final String RESULTS_DIRECTORY = "results";
 
     public static void main(String[] args) {
         withOpenExcelSheet("AllOperations.xls", (sheet) -> {
@@ -38,8 +40,16 @@ public class MigrateTool {
                             Collections::singletonList,
                             MigrateTool::union));
 
+            new File(RESULTS_DIRECTORY).mkdirs();
+
+            transactionsPerWallet.forEach(
+                    (key, value) -> CsvReportMaker.createReport(value, walletNameToReportFilename(key)));
         });
 
+    }
+
+    private static String walletNameToReportFilename(String walletName) {
+        return new File(RESULTS_DIRECTORY, walletName + ".csv").getPath();
     }
 
     private static MoneyTransaction readMoneyTransaction(Row row, MigrateSheetHeaderInfo sheetHeaderInfo) {
