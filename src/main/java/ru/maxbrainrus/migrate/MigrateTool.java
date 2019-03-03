@@ -1,11 +1,10 @@
 package ru.maxbrainrus.migrate;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.maxbrainrus.report.CsvReportMaker;
 
 import java.io.File;
@@ -23,29 +22,40 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 public class MigrateTool {
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy (HH:mm)");
     public static final Pattern WALLET_PATTERN = Pattern.compile("\\[([^\\[\\]]+)\\]");
-    private static final Logger log = LoggerFactory.getLogger(MigrateTool.class);
     private static final Set<OperationType> OPERATION_TYPES_WITH_CATEGORY = EnumSet.of(OperationType.INCOME, OperationType.EXPENDITURE);
     public static final String RESULTS_DIRECTORY = "results";
 
     public static void main(String[] args) {
         withOpenExcelSheet("AllOperations.xls", (sheet) -> {
             MigrateSheetHeaderInfo sheetHeaderInfo = getSheetHeaderInfo(sheet);
-            Map<String, List<MoneyTransaction>> transactionsPerWallet = StreamSupport.stream(sheet.spliterator(), false)
+            List<MoneyTransaction> transactions = StreamSupport.stream(sheet.spliterator(), false)
                     .filter(row -> row.getRowNum() > sheetHeaderInfo.getHeaderRowIndex())
                     .map(row -> readMoneyTransaction(row, sheetHeaderInfo))
-                    .collect(Collectors.toMap(MoneyTransaction::getSourceWallet,
-                            Collections::singletonList,
-                            MigrateTool::union));
+                    .filter(transaction -> !isDeletedTransaction(transaction))
+                    .collect(Collectors.toList());
 
             new File(RESULTS_DIRECTORY).mkdirs();
 
-            transactionsPerWallet.forEach(
-                    (key, value) -> CsvReportMaker.createReport(value, walletNameToReportFilename(key)));
+            CsvReportMaker.createReport(transactions, walletNameToReportFilename("convertedOperations"));
         });
 
+    }
+
+    private static boolean isDeletedTransaction(MoneyTransaction transaction) {
+        if (isZeroOrNull(transaction.getAmountArrival()) &&
+                isZeroOrNull(transaction.getAmountExpenditure())) {
+            log.info("Found transaction with zero amount (deleted) {}", transaction);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isZeroOrNull(BigDecimal amount) {
+        return amount == null || amount.signum() == 0;
     }
 
     private static String walletNameToReportFilename(String walletName) {

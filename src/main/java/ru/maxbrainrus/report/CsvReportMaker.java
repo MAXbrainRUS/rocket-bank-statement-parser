@@ -1,5 +1,6 @@
 package ru.maxbrainrus.report;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import ru.maxbrainrus.migrate.MoneyTransaction;
@@ -12,14 +13,17 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static ru.maxbrainrus.migrate.MigrateTool.isZeroOrNull;
+
+@Slf4j
 public class CsvReportMaker {
     public static final String[] REPORT_HEADERS = {
             "Date",
             "OperationType",
-            "AmountArrival",
-            "AmountExpenditure",
+            "Amount",
             "Category",
             "Description",
+            "SourceWallet",
             "TargetWallet"
     };
     public static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.withHeader(REPORT_HEADERS);
@@ -36,14 +40,25 @@ public class CsvReportMaker {
             csvPrinter.printRecord(
                     transaction.getDate(),
                     transaction.getOperationType(),
-                    nullIfZero(transaction.getAmountArrival()),
-                    nullIfZero(transaction.getAmountExpenditure()),
+                    getAmount(transaction),
                     transaction.getCategory(),
                     transaction.getDescription(),
+                    transaction.getSourceWallet(),
                     transaction.getTargetWallet()
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static BigDecimal getAmount(MoneyTransaction transaction) {
+        if (!isZeroOrNull(transaction.getAmountArrival())) {
+            return transaction.getAmountArrival();
+        } else if (!isZeroOrNull(transaction.getAmountExpenditure())) {
+            return transaction.getAmountExpenditure();
+        } else {
+            log.error("Transaction with no amount in report. Transaction: {}", transaction);
+            return null;
         }
     }
 
