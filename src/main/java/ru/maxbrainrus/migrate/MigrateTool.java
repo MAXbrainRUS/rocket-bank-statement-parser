@@ -46,8 +46,9 @@ public class MigrateTool {
     }
 
     private static boolean isDeletedTransaction(MoneyTransaction transaction) {
-        if (isZeroOrNull(transaction.getAmountArrival()) &&
-                isZeroOrNull(transaction.getAmountExpenditure())) {
+        Amounts amounts = transaction.getAmounts();
+        if (isZeroOrNull(amounts.getArrival().getAmount()) &&
+                isZeroOrNull(amounts.getExpenditure().getAmount())) {
             log.info("Found transaction with zero amount (deleted) {}", transaction);
             return true;
         }
@@ -66,18 +67,41 @@ public class MigrateTool {
         String description = extractDescription(row, sheetHeaderInfo.getDescription().getColNum());
         List<String> wallets = extractWallets(description);
         OperationType operationType = extractOperationType(row, sheetHeaderInfo.getOperationType().getColNum());
+        Amounts amounts = getAmounts(row, sheetHeaderInfo, operationType);
+
         return MoneyTransaction.builder()
                 .operationType(operationType)
                 .date(extractDate(row, sheetHeaderInfo.getDateTime().getColNum()))
-                .amountArrival(extractAmount(row, sheetHeaderInfo.getSumIncome().getColNum()))
-                .ccyArrival(extractCcy(row, sheetHeaderInfo.getCcyIncome().getColNum()))
-                .amountExpenditure(extractAmount(row, sheetHeaderInfo.getSumOutcome().getColNum()))
-                .ccyExpenditure(extractCcy(row, sheetHeaderInfo.getCcyOutcome().getColNum()))
+                .amounts(amounts)
                 .sourceWallet(wallets.get(0))
                 .targetWallet(operationType == OperationType.TRANSFER ? wallets.get(1) : null)
                 .description(extractComment(row, sheetHeaderInfo.getComment().getColNum()))
                 .category(getCategory(description, operationType))
                 .build();
+    }
+
+    private static Amounts getAmounts(Row row, MigrateSheetHeaderInfo sheetHeaderInfo, OperationType operationType) {
+        AmountWithCcy income = AmountWithCcy.builder()
+                .amount(extractAmount(row, sheetHeaderInfo.getSumIncome().getColNum()))
+                .ccy(extractCcy(row, sheetHeaderInfo.getCcyIncome().getColNum()))
+                .build();
+        AmountWithCcy outcome = AmountWithCcy.builder()
+                .amount(extractAmount(row, sheetHeaderInfo.getSumOutcome().getColNum()))
+                .ccy(extractCcy(row, sheetHeaderInfo.getCcyOutcome().getColNum()))
+                .build();
+        Amounts.AmountsBuilder builder = Amounts.builder();
+        //
+        if (operationType == OperationType.TRANSFER) {
+            builder
+                    .arrival(outcome)
+                    .expenditure(income);
+        } else {
+            builder
+                    .arrival(income)
+                    .expenditure(outcome);
+        }
+        return builder.build();
+
     }
 
     private static String extractCcy(Row row, int columnIndex) {

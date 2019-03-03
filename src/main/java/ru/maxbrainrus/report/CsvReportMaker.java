@@ -47,9 +47,9 @@ public class CsvReportMaker {
                     transaction.getDate(),
                     transaction.getOperationType(),
                     amounts.get(0),
-                    transaction.getCcyArrival(),
+                    transaction.getAmounts().getArrival().getCcy(),
                     destinationAmount,
-                    destinationAmount == null ? null : transaction.getCcyExpenditure(),
+                    destinationAmount == null ? null : transaction.getAmounts().getExpenditure().getCcy(),
                     transaction.getCategory(),
                     transaction.getDescription(),
                     transaction.getSourceWallet(),
@@ -62,8 +62,8 @@ public class CsvReportMaker {
 
     private static List<BigDecimal> getAmounts(MoneyTransaction transaction) {
         List<BigDecimal> result = new ArrayList<>(2);
-        BigDecimal income = transaction.getAmountArrival();
-        BigDecimal outcome = transaction.getAmountExpenditure();
+        BigDecimal income = transaction.getAmounts().getArrival().getAmount();
+        BigDecimal outcome = transaction.getAmounts().getExpenditure().getAmount();
         if (!isZeroOrNull(income) && !isZeroOrNull(outcome)) {
             result.add(income);
             result.add(outcome);
@@ -75,13 +75,17 @@ public class CsvReportMaker {
     }
 
     private static BigDecimal getNonZeroAmount(MoneyTransaction transaction) {
-        if (!isZeroOrNull(transaction.getAmountArrival())) {
-            return transaction.getAmountArrival();
-        } else if (!isZeroOrNull(transaction.getAmountExpenditure())) {
-            return transaction.getAmountExpenditure();
+        BigDecimal amountArrival = transaction.getAmounts().getArrival().getAmount();
+        BigDecimal amountExpenditure = transaction.getAmounts().getExpenditure().getAmount();
+        if (!isZeroOrNull(amountArrival)) {
+            return amountArrival;
         } else {
-            log.error("Transaction with no amount in report. Transaction: {}", transaction);
-            return null;
+            if (!isZeroOrNull(amountExpenditure)) {
+                return amountExpenditure;
+            } else {
+                log.error("Transaction with no amount in report. Transaction: {}", transaction);
+                return null;
+            }
         }
     }
 
