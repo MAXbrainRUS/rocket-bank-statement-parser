@@ -70,12 +70,24 @@ public class MigrateTool {
                 .operationType(operationType)
                 .date(extractDate(row, sheetHeaderInfo.getDateTime().getColNum()))
                 .amountArrival(extractAmount(row, sheetHeaderInfo.getSumIncome().getColNum()))
+                .ccyArrival(extractCcy(row, sheetHeaderInfo.getCcyIncome().getColNum()))
                 .amountExpenditure(extractAmount(row, sheetHeaderInfo.getSumOutcome().getColNum()))
+                .ccyExpenditure(extractCcy(row, sheetHeaderInfo.getCcyOutcome().getColNum()))
                 .sourceWallet(wallets.get(0))
                 .targetWallet(operationType == OperationType.TRANSFER ? wallets.get(1) : null)
                 .description(extractComment(row, sheetHeaderInfo.getComment().getColNum()))
                 .category(getCategory(description, operationType))
                 .build();
+    }
+
+    private static String extractCcy(Row row, int columnIndex) {
+        Cell cell = row.getCell(columnIndex);
+        if (isStringCell(cell)) {
+            String commentValue = cell.getStringCellValue();
+            log.debug("Processing ccy from cell value: {}", commentValue);
+            return commentValue;
+        }
+        return null;
     }
 
     private static String getCategory(String description, OperationType operationType) {
@@ -207,16 +219,16 @@ public class MigrateTool {
     }
 
     private static MigrateSheetHeaderInfo getSheetHeaderInfo(Sheet sheet) {
-        return new MigrateSheetHeaderInfo(
-                getColumnInfoWithStringValue(sheet, "Дата, время"),
-                getColumnInfoWithStringValue(sheet, "Тип операции"),
-                getColumnInfoWithStringValue(sheet, "СуммаПоступления"),
-                getColumnInfoWithStringValue(sheet, "ВалютаПоступления"),
-                getColumnInfoWithStringValue(sheet, "СуммаСписания"),
-                getColumnInfoWithStringValue(sheet, "ВалютаСписания"),
-                getColumnInfoWithStringValue(sheet, "Описание операции"),
-                getColumnInfoWithStringValue(sheet, "Комментарий")
-        );
+        return MigrateSheetHeaderInfo.builder()
+                .dateTime(getColumnInfoWithStringValue(sheet, "Дата, время"))
+                .operationType(getColumnInfoWithStringValue(sheet, "Тип операции"))
+                .sumIncome(getColumnInfoWithStringValue(sheet, "СуммаПоступления"))
+                .ccyIncome(getColumnInfoWithStringValue(sheet, "ВалютаПоступления"))
+                .sumOutcome(getColumnInfoWithStringValue(sheet, "СуммаСписания"))
+                .ccyOutcome(getColumnInfoWithStringValue(sheet, "ВалютаСписания"))
+                .description(getColumnInfoWithStringValue(sheet, "Описание операции"))
+                .comment(getColumnInfoWithStringValue(sheet, "Комментарий"))
+                .build();
     }
 
     private static ColumnInfo getColumnInfoWithStringValue(Sheet sheet, String cellValue) {

@@ -1,8 +1,12 @@
 package ru.maxbrainrus.migrate;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 @Value
+@Builder
+@AllArgsConstructor
 public class MigrateSheetHeaderInfo {
     private final ColumnInfo dateTime;
     private final ColumnInfo operationType;
@@ -13,16 +17,4 @@ public class MigrateSheetHeaderInfo {
     private final ColumnInfo description;
     private final ColumnInfo comment;
     private final int headerRowIndex;
-
-    public MigrateSheetHeaderInfo(ColumnInfo dateTime, ColumnInfo operationType, ColumnInfo sumIncome, ColumnInfo ccyIncome, ColumnInfo sumOutcome, ColumnInfo ccyOutcome, ColumnInfo description, ColumnInfo comment) {
-        this.dateTime = dateTime;
-        this.operationType = operationType;
-        this.sumIncome = sumIncome;
-        this.ccyIncome = ccyIncome;
-        this.sumOutcome = sumOutcome;
-        this.ccyOutcome = ccyOutcome;
-        this.description = description;
-        this.comment = comment;
-        this.headerRowIndex = dateTime.getHeaderRow();
-    }
 }

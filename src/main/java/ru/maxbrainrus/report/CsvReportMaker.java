@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -21,6 +22,9 @@ public class CsvReportMaker {
             "Date",
             "OperationType",
             "Amount",
+            "SourceCurrency",
+            "DestinationAmount",
+            "DestinationCurrency",
             "Category",
             "Description",
             "SourceWallet",
@@ -37,10 +41,15 @@ public class CsvReportMaker {
 
     private static void printTransaction(MoneyTransaction transaction, CSVPrinter csvPrinter) {
         try {
+            List<BigDecimal> amounts = getAmounts(transaction);
+            BigDecimal destinationAmount = amounts.get(1);
             csvPrinter.printRecord(
                     transaction.getDate(),
                     transaction.getOperationType(),
-                    getAmount(transaction),
+                    amounts.get(0),
+                    transaction.getCcyArrival(),
+                    destinationAmount,
+                    destinationAmount == null ? null : transaction.getCcyExpenditure(),
                     transaction.getCategory(),
                     transaction.getDescription(),
                     transaction.getSourceWallet(),
@@ -51,7 +60,21 @@ public class CsvReportMaker {
         }
     }
 
-    private static BigDecimal getAmount(MoneyTransaction transaction) {
+    private static List<BigDecimal> getAmounts(MoneyTransaction transaction) {
+        List<BigDecimal> result = new ArrayList<>(2);
+        BigDecimal income = transaction.getAmountArrival();
+        BigDecimal outcome = transaction.getAmountExpenditure();
+        if (!isZeroOrNull(income) && !isZeroOrNull(outcome)) {
+            result.add(income);
+            result.add(outcome);
+        } else {
+            result.add(getNonZeroAmount(transaction));
+            result.add(null);
+        }
+        return result;
+    }
+
+    private static BigDecimal getNonZeroAmount(MoneyTransaction transaction) {
         if (!isZeroOrNull(transaction.getAmountArrival())) {
             return transaction.getAmountArrival();
         } else if (!isZeroOrNull(transaction.getAmountExpenditure())) {
@@ -60,10 +83,6 @@ public class CsvReportMaker {
             log.error("Transaction with no amount in report. Transaction: {}", transaction);
             return null;
         }
-    }
-
-    private static BigDecimal nullIfZero(BigDecimal amount) {
-        return amount.signum() == 0 ? null : amount;
     }
 
     private static void withOpenCsvToWrite(String filename, CSVFormat format, Consumer<CSVPrinter> consumer) {
