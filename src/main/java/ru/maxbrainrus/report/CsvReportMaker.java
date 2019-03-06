@@ -21,7 +21,7 @@ public class CsvReportMaker {
     public static final String[] REPORT_HEADERS = {
             "Date",
             "OperationType",
-            "Amount",
+            "SourceAmount",
             "SourceCurrency",
             "DestinationAmount",
             "DestinationCurrency",
@@ -47,9 +47,9 @@ public class CsvReportMaker {
                     transaction.getDate(),
                     transaction.getOperationType(),
                     amounts.get(0),
-                    transaction.getAmounts().getArrival().getCcy(),
+                    transaction.getAmounts().getSourceAmount().getCcy(),
                     destinationAmount,
-                    destinationAmount == null ? null : transaction.getAmounts().getExpenditure().getCcy(),
+                    destinationAmount == null ? null : transaction.getAmounts().getTargetAmount().getCcy(),
                     transaction.getCategory(),
                     transaction.getDescription(),
                     transaction.getSourceWallet(),
@@ -62,31 +62,23 @@ public class CsvReportMaker {
 
     private static List<BigDecimal> getAmounts(MoneyTransaction transaction) {
         List<BigDecimal> result = new ArrayList<>(2);
-        BigDecimal income = transaction.getAmounts().getArrival().getAmount();
-        BigDecimal outcome = transaction.getAmounts().getExpenditure().getAmount();
-        if (!isZeroOrNull(income) && !isZeroOrNull(outcome)) {
-            result.add(income);
-            result.add(outcome);
+        BigDecimal sourceAmount = transaction.getAmounts().getSourceAmount().getAmount();
+        BigDecimal targetAmount = transaction.getAmounts().getTargetAmount().getAmount();
+        if (!isZeroOrNull(sourceAmount) && !isZeroOrNull(targetAmount)) {
+            result.add(sourceAmount);
+            result.add(targetAmount);
+        } else if (!isZeroOrNull(sourceAmount)) {
+            result.add(sourceAmount);
+            result.add(null);
+        } else if (!isZeroOrNull(targetAmount)) {
+            result.add(targetAmount);
+            result.add(null);
         } else {
-            result.add(getNonZeroAmount(transaction));
+            log.error("Transaction with no amount in report. Transaction: {}", transaction);
+            result.add(null);
             result.add(null);
         }
         return result;
-    }
-
-    private static BigDecimal getNonZeroAmount(MoneyTransaction transaction) {
-        BigDecimal amountArrival = transaction.getAmounts().getArrival().getAmount();
-        BigDecimal amountExpenditure = transaction.getAmounts().getExpenditure().getAmount();
-        if (!isZeroOrNull(amountArrival)) {
-            return amountArrival;
-        } else {
-            if (!isZeroOrNull(amountExpenditure)) {
-                return amountExpenditure;
-            } else {
-                log.error("Transaction with no amount in report. Transaction: {}", transaction);
-                return null;
-            }
-        }
     }
 
     private static void withOpenCsvToWrite(String filename, CSVFormat format, Consumer<CSVPrinter> consumer) {

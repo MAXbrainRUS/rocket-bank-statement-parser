@@ -6,6 +6,6 @@ import lombok.Value;
 @Value
 @Builder
 public class Amounts {
-    AmountWithCcy arrival;
-    AmountWithCcy expenditure;
+    AmountWithCcy sourceAmount;
+    AmountWithCcy targetAmount; // only for transfer operation type
 }

@@ -56,8 +56,8 @@ public class MigrateTool {
 
     private static boolean isDeletedTransaction(MoneyTransaction transaction) {
         Amounts amounts = transaction.getAmounts();
-        if (isZeroOrNull(amounts.getArrival().getAmount()) &&
-                isZeroOrNull(amounts.getExpenditure().getAmount())) {
+        if (isZeroOrNull(amounts.getSourceAmount().getAmount()) &&
+                isZeroOrNull(amounts.getTargetAmount().getAmount())) {
             log.info("Found transaction with zero amount (deleted) {}", transaction);
             return true;
         }
@@ -99,15 +99,15 @@ public class MigrateTool {
                 .ccy(extractCcy(row, sheetHeaderInfo.getCcyOutcome().getColNum()))
                 .build();
         Amounts.AmountsBuilder builder = Amounts.builder();
-        //
+
         if (operationType == OperationType.TRANSFER) {
             builder
-                    .arrival(outcome)
-                    .expenditure(income);
+                    .sourceAmount(outcome)
+                    .targetAmount(income);
         } else {
             builder
-                    .arrival(income)
-                    .expenditure(outcome);
+                    .sourceAmount(income)
+                    .targetAmount(outcome);
         }
         return builder.build();
 

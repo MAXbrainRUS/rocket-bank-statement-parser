@@ -15,5 +15,4 @@ public class MoneyTransaction {
     String category;
     String sourceWallet;
     String targetWallet; // only for transfer operation type
-
 }
