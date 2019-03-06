@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -37,6 +38,14 @@ public class MigrateTool {
                     .map(row -> readMoneyTransaction(row, sheetHeaderInfo))
                     .filter(transaction -> !isDeletedTransaction(transaction))
                     .collect(Collectors.toList());
+
+            System.out.println("Found wallets:");
+            transactions.stream()
+                    .flatMap(transaction -> Stream.of(
+                            transaction.getSourceWallet(),
+                            transaction.getTargetWallet()))
+                    .distinct()
+                    .forEach(System.out::println);
 
             new File(RESULTS_DIRECTORY).mkdirs();
 
