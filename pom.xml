@@ -66,6 +66,11 @@
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
         </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>3.7.0</version>
+        </dependency>
 
         <!-- logging -->
         <dependency>
