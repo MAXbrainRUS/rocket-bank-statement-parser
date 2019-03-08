@@ -19,9 +19,9 @@ public class KeyWordCategoryFiller {
                 String categoryOrWallet = entry.getValue();
                 if (transaction.getOperationType() == OperationType.TRANSFER) {
                     if (transaction.getSourceWallet() == null) {
-                        builder.targetWallet(categoryOrWallet);
-                    } else {
                         builder.sourceWallet(categoryOrWallet);
+                    } else if (transaction.getTargetWallet() == null) {
+                        builder.targetWallet(categoryOrWallet);
                     }
                 } else {
                     builder.category(categoryOrWallet);
