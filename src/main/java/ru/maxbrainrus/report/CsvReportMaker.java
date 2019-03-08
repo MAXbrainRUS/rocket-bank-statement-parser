@@ -3,6 +3,8 @@ package ru.maxbrainrus.report;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import ru.maxbrainrus.migrate.AmountWithCcy;
+import ru.maxbrainrus.migrate.Amounts;
 import ru.maxbrainrus.migrate.MoneyTransaction;
 
 import java.io.BufferedWriter;
@@ -12,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static ru.maxbrainrus.migrate.MigrateTool.isZeroOrNull;
@@ -62,8 +65,9 @@ public class CsvReportMaker {
 
     private static List<BigDecimal> getAmounts(MoneyTransaction transaction) {
         List<BigDecimal> result = new ArrayList<>(2);
-        BigDecimal sourceAmount = transaction.getAmounts().getSourceAmount().getAmount();
-        BigDecimal targetAmount = transaction.getAmounts().getTargetAmount().getAmount();
+        Amounts amounts = transaction.getAmounts();
+        BigDecimal sourceAmount = amounts.getSourceAmount().getAmount();
+        BigDecimal targetAmount = Optional.ofNullable(amounts.getTargetAmount()).map(AmountWithCcy::getAmount).orElse(null);
         if (!isZeroOrNull(sourceAmount) && !isZeroOrNull(targetAmount)) {
             result.add(sourceAmount);
             result.add(targetAmount);

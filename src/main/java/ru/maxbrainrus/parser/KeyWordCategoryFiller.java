@@ -1,5 +1,8 @@
 package ru.maxbrainrus.parser;
 
+import ru.maxbrainrus.migrate.MoneyTransaction;
+import ru.maxbrainrus.migrate.OperationType;
+
 import java.util.Map;
 
 public class KeyWordCategoryFiller {
@@ -9,10 +12,21 @@ public class KeyWordCategoryFiller {
         this.keyWordsToCategoryMap = keyWordsToCategoryMap;
     }
 
-    public Transaction fillCategory(Transaction transaction) {
+    public MoneyTransaction fillCategory(MoneyTransaction transaction) {
         for (Map.Entry<String, String> entry : keyWordsToCategoryMap.entrySet()) {
             if (transaction.getDescription().contains(entry.getKey())) {
-                return transaction.toBuilder().setCategory(entry.getValue()).build();
+                MoneyTransaction.MoneyTransactionBuilder builder = transaction.toBuilder();
+                String categoryOrWallet = entry.getValue();
+                if (transaction.getOperationType() == OperationType.TRANSFER) {
+                    if (transaction.getSourceWallet() == null) {
+                        builder.targetWallet(categoryOrWallet);
+                    } else {
+                        builder.sourceWallet(categoryOrWallet);
+                    }
+                } else {
+                    builder.category(categoryOrWallet);
+                }
+                return builder.build();
             }
         }
         return transaction;

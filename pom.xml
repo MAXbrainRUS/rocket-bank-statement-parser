@@ -201,12 +201,11 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>osxappbundle-maven-plugin</artifactId>
-                        <version>1.0-alpha-2</version>
+                        <groupId>sh.tak.appbundler</groupId>
+                        <artifactId>appbundle-maven-plugin</artifactId>
+                        <version>1.2.0</version>
                         <configuration>
                             <mainClass>ru.maxbrainrus.app.CommandLineRunner</mainClass>
-                            <jvmVersion>1.8.0</jvmVersion>
                             <!--<iconFile>${basedir}/build-resources/osx/icons/application.icns</iconFile>-->
                         </configuration>
                         <executions>

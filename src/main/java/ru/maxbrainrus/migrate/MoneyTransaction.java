@@ -4,9 +4,10 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class MoneyTransaction {
     OperationType operationType;
     LocalDate date;
@@ -15,4 +16,9 @@ public class MoneyTransaction {
     String category;
     String sourceWallet;
     String targetWallet; // only for transfer operation type
+    /**
+     * Temporal field.
+     * Date of operation in description of source pdf.
+     */
+    LocalDateTime operationDate;
 }
