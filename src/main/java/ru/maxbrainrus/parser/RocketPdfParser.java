@@ -2,6 +2,7 @@ package ru.maxbrainrus.parser;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
+import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.migrate.AmountWithCcy;
 import ru.maxbrainrus.migrate.Amounts;
 import ru.maxbrainrus.migrate.MoneyTransaction;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class RocketPdfParser {
     public static final String РОКЕТ_WALLET = "Рокет карта";
     private final KeyWordCategoryFiller categoryFiller;
@@ -79,12 +81,17 @@ public class RocketPdfParser {
          * Not 'collect' because algorithm not stateless and depends on order of lines from page
          */
         lines.forEachOrdered(line -> {
-            if (patternStart.matcher(line).matches()) {
-                accumulator.add(line);
-            } else {
-                int lastIndex = accumulator.size() - 1;
-                assert lastIndex != -1;
-                accumulator.set(lastIndex, accumulator.get(lastIndex) + " " + line);
+            try {
+                if (patternStart.matcher(line).matches()) {
+                    accumulator.add(line);
+                } else {
+                    int lastIndex = accumulator.size() - 1;
+                    assert lastIndex != -1;
+                    accumulator.set(lastIndex, accumulator.get(lastIndex) + " " + line);
+                }
+            } catch (RuntimeException e) {
+                log.error("Error with line '{}'", line);
+                throw e;
             }
         });
         return accumulator;
