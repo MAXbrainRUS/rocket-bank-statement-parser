@@ -19,12 +19,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 @Slf4j
 public class RocketPdfParser {
     public static final String РОКЕТ_WALLET = "Рокет карта";
     private final KeyWordCategoryFiller categoryFiller;
+    public static final Pattern AMOUNT_PATTERN = Pattern.compile(" (-?\\d+[ \\d]*([\\.,]\\d+)?) RUR");
     // Pattern that describes start of transaction's description
-    private Pattern patternStart = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})?( P2P)? ?([А-ЯЁ][ а-яё]+).*RUR.*");
+    private static final Pattern PATTERN_START = Pattern.compile("((\\d{2}\\.\\d{2}\\.\\d{4})|( P2P)? ?([А-ЯЁ][ а-яё]+)).*RUR.*");
 
     public RocketPdfParser(KeyWordCategoryFiller categoryFiller) {
         this.categoryFiller = categoryFiller;
@@ -67,34 +70,16 @@ public class RocketPdfParser {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Collect lines to texts of transactions
-     *
-     * @param lines string lines from page
-     * @return list of texts where each text refers to one transaction
-     */
-    private List<String> collectTransactionTexts(Stream<String> lines) {
-        List<String> accumulator = new ArrayList<>();
-        /*
-         * If line is a beginning of transaction just adds it to the end of accumulator,
-         * otherwise concat them to last element in accumulator.
-         * Not 'collect' because algorithm not stateless and depends on order of lines from page
-         */
-        lines.forEachOrdered(line -> {
-            try {
-                if (patternStart.matcher(line).matches()) {
-                    accumulator.add(line);
-                } else {
-                    int lastIndex = accumulator.size() - 1;
-                    assert lastIndex != -1;
-                    accumulator.set(lastIndex, accumulator.get(lastIndex) + " " + line);
-                }
-            } catch (RuntimeException e) {
-                log.error("Error with line '{}'", line);
-                throw e;
-            }
-        });
-        return accumulator;
+    private static String cutAmounts(String transactionText, List<BigDecimal> resultDest) {
+        for (Matcher matcher = AMOUNT_PATTERN.matcher(transactionText); matcher.find(); matcher = AMOUNT_PATTERN.matcher(transactionText)) {
+            String amountStringValue = matcher.group(1)
+                    .replace(" ", "")
+                    .replace(",", ".");
+            BigDecimal amount = new BigDecimal(amountStringValue);
+            resultDest.add(amount);
+            transactionText = excludeStringPart(transactionText, matcher);
+        }
+        return transactionText;
     }
 
     private SourceDest cutGarbage(SourceDest sourceDest) {
@@ -125,29 +110,37 @@ public class RocketPdfParser {
         return new SourceDest(s, sourceDest.getTransactionData());
     }
 
-    private SourceDest cutEconomicToRow(SourceDest sourceDest) {
-        String transactionText = sourceDest.getTransactionText();
-        MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
-        Pattern amountPattern = Pattern.compile(" (-?\\d+[ \\d]*([\\.,]\\d+)?) RUR");
-        Matcher amountMatcher = amountPattern.matcher(transactionText);
-        if (amountMatcher.find()) {
-            String amountStringValue = amountMatcher.group(1)
-                    .replace(" ", "")
-                    .replace(",", ".");
-            BigDecimal amount = new BigDecimal(amountStringValue);
-            OperationType operationType = getOperationType(amount, transactionText);
-            setRoketWalletToTransaction(builder, amount, operationType);
-            builder.operationType(operationType);
-            setAmount(amount, builder);
-            transactionText = excludeStringPart(transactionText, amountMatcher);
-        }
+    private static String excludeStringPart(String s, Matcher matcher) {
+        return s.substring(0, matcher.start()) + s.substring(matcher.end());
+    }
 
-        // Transaction may contain subtotal of account (has the same pattern)
-        // Exclude them from transaction text
-        for (Matcher matcher = amountPattern.matcher(transactionText); matcher.find(); matcher = amountPattern.matcher(transactionText)) {
-            transactionText = excludeStringPart(transactionText, matcher);
-        }
-        return new SourceDest(transactionText, builder);
+    /**
+     * Collect lines to texts of transactions
+     *
+     * @param lines string lines from page
+     * @return list of texts where each text refers to one transaction
+     */
+    private List<String> collectTransactionTexts(Stream<String> lines) {
+        List<String> accumulator = new ArrayList<>();
+        /*
+         * If line is a beginning of transaction just adds it to the end of accumulator,
+         * otherwise concat them to last element in accumulator.
+         * Not 'collect' because algorithm not stateless and depends on order of lines from page
+         */
+        lines.forEachOrdered(line -> {
+            try {
+                if (PATTERN_START.matcher(line).matches()) {
+                    accumulator.add(line);
+                } else {
+                    int lastIndex = accumulator.size() - 1;
+                    accumulator.set(lastIndex, accumulator.get(lastIndex) + " " + line);
+                }
+            } catch (RuntimeException e) {
+                log.error("Error with line '{}'", line);
+                throw e;
+            }
+        });
+        return accumulator;
     }
 
     private void setRoketWalletToTransaction(MoneyTransaction.MoneyTransactionBuilder builder, BigDecimal amount, OperationType operationType) {
@@ -187,8 +180,19 @@ public class RocketPdfParser {
         return new SourceDest(s, builder);
     }
 
-    private String excludeStringPart(String s, Matcher matcher) {
-        return s.substring(0, matcher.start()) + s.substring(matcher.end());
+    private SourceDest cutEconomicToRow(SourceDest sourceDest) {
+        String transactionText = sourceDest.getTransactionText();
+        MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
+        List<BigDecimal> amounts = new ArrayList<>();
+        transactionText = cutAmounts(transactionText, amounts);
+        BigDecimal amount = amounts.get(amounts.size() - 1);
+
+        OperationType operationType = getOperationType(amount, transactionText);
+        setRoketWalletToTransaction(builder, amount, operationType);
+        builder.operationType(operationType);
+        setAmount(amount, builder);
+
+        return new SourceDest(transactionText, builder);
     }
 
     public List<MoneyTransaction> parsePdf(String fileName) {
@@ -201,7 +205,7 @@ public class RocketPdfParser {
                 List<MoneyTransaction> transactions = parseTextOfPage(textFromPage);
                 res.addAll(transactions);
             }
-            postEditing(res);
+            res = postEditing(res);
             return res;
         } catch (IOException e) {
             System.err.println("An error occurred while read pdf source report.");
@@ -209,7 +213,7 @@ public class RocketPdfParser {
         }
     }
 
-    private void postEditing(List<MoneyTransaction> res) {
+    private List<MoneyTransaction> postEditing(List<MoneyTransaction> res) {
         // if transactions are in one day, only first transaction will be with filled date.
         // fill dates from upper transactions
         for (int i = 1; i < res.size(); i++) {
@@ -219,13 +223,18 @@ public class RocketPdfParser {
         }
         // If transaction date has operation date it will be more suit.
         // Transactions from shops has date when money income to bank. It happens after few days after operation date.
-        for (int i = 0; i < res.size(); i++) {
-            LocalDateTime operationDate = res.get(i).getOperationDate();
-            if (operationDate != null) {
-                res.set(i, res.get(i).toBuilder().date(operationDate.toLocalDate()).build());
-            }
-        }
-        res.sort(Comparator.comparing(MoneyTransaction::getDate));
+        res = res.stream()
+                .filter(moneyTransaction -> !isEmpty(moneyTransaction.getDescription())) // fake transaction with date only
+                .map(moneyTransaction -> {
+                    LocalDateTime operationDate = moneyTransaction.getOperationDate();
+                    if (operationDate != null) {
+                        return moneyTransaction.toBuilder().date(operationDate.toLocalDate()).build();
+                    }
+                    return moneyTransaction;
+                })
+                .sorted(Comparator.comparing(MoneyTransaction::getDate))
+                .collect(Collectors.toList());
+        return res;
     }
 }
 
