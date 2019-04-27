@@ -213,28 +213,35 @@ public class RocketPdfParser {
         }
     }
 
-    private List<MoneyTransaction> postEditing(List<MoneyTransaction> res) {
-        // if transactions are in one day, only first transaction will be with filled date.
-        // fill dates from upper transactions
+    private static MoneyTransaction rewriteDateWithOperationDate(MoneyTransaction transaction) {
+        LocalDateTime operationDate = transaction.getOperationDate();
+        if (operationDate != null) {
+            return transaction.toBuilder().date(operationDate.toLocalDate()).build();
+        }
+        return transaction;
+    }
+
+    private static List<MoneyTransaction> fillDatesFromTransactionsAbove(List<MoneyTransaction> transactions) {
+        List<MoneyTransaction> res = new ArrayList<>(transactions);
         for (int i = 1; i < res.size(); i++) {
             if (res.get(i).getDate() == null) {
                 res.set(i, res.get(i).toBuilder().date(res.get(i - 1).getDate()).build());
             }
         }
+        return res;
+    }
+
+    private List<MoneyTransaction> postEditing(List<MoneyTransaction> transactions) {
+        // If transactions are in one day, only first transaction will be with filled date.
+        // Fill dates from upper transactions
+        List<MoneyTransaction> res = fillDatesFromTransactionsAbove(transactions);
         // If transaction date has operation date it will be more suit.
         // Transactions from shops has date when money income to bank. It happens after few days after operation date.
-        res = res.stream()
-                .filter(moneyTransaction -> !isEmpty(moneyTransaction.getDescription())) // fake transaction with date only
-                .map(moneyTransaction -> {
-                    LocalDateTime operationDate = moneyTransaction.getOperationDate();
-                    if (operationDate != null) {
-                        return moneyTransaction.toBuilder().date(operationDate.toLocalDate()).build();
-                    }
-                    return moneyTransaction;
-                })
+        return res.stream()
+                .filter(moneyTransaction -> !isEmpty(moneyTransaction.getDescription())) // fake transaction with date only should be removed
+                .map(RocketPdfParser::rewriteDateWithOperationDate)
                 .sorted(Comparator.comparing(MoneyTransaction::getDate))
                 .collect(Collectors.toList());
-        return res;
     }
 }
 
