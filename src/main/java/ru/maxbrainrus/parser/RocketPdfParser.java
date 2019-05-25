@@ -17,7 +17,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -33,8 +32,8 @@ public class RocketPdfParser {
         this.categoryFiller = categoryFiller;
     }
 
-    private static Stream<String> filterNonTransactionLines(Stream<String> input) {
-        return input
+    private static List<String> filterNonTransactionLines(List<String> input) {
+        return filterEndOfDocument(input).stream()
                 .filter(Objects::nonNull)
                 .filter(s -> !s.isEmpty())
                 .filter(s -> !s.startsWith("Выписка"))
@@ -48,16 +47,36 @@ public class RocketPdfParser {
                 .filter(s -> !s.startsWith("Итог:"))
                 .filter(s -> !s.startsWith("Руководитель отдела"))
                 .filter(s -> !s.startsWith("Специалист"))
-                .filter(s -> !s.matches("([А-ЯЁ][А-ЯЁа-яё]* ?){2,3}")) // ФИО руководителя отдела или специалиста
-                .filter(s -> !s.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) // date at the end of document
-                .filter(s -> !s.matches("№ [\\d\\-/A-Za-z]+")); // Id of document
+//                .filter(s -> !s.matches("([А-ЯЁ][А-ЯЁа-яё]* ?){2,3}")) // ФИО руководителя отдела или специалиста
+//                .filter(s -> !s.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) // date at the end of document
+//                .filter(s -> !s.matches("№ [\\d\\-/A-Za-z]+"))
+                .collect(Collectors.toList()); // Id of document
+    }
+
+    private static List<String> filterEndOfDocument(List<String> lines) {
+        int indexTailLine = getIndexTailLine(lines);
+        if (indexTailLine == -1) {
+            return lines;
+        }
+        return lines.subList(0, indexTailLine);
+    }
+
+    private static int getIndexTailLine(List<String> input) {
+        for (int i = 0; i < input.size(); i++) {
+            String s = input.get(i);
+            if (s != null && s.startsWith("Руководитель отдела")) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private List<MoneyTransaction> parseTextOfPage(String textFromPage) {
-        String[] linesFromPage = textFromPage.split("\n");
-        List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(Arrays.stream(linesFromPage)));
+        List<String> linesFromPage = Arrays.asList(textFromPage.split("\n"));
+        log.info("Got lines from page:\n<START OF PAGE>\n{}\n <END OF PAGE>", String.join("\n", linesFromPage));
+        List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(linesFromPage));
         return transactionTexts.stream()
-                .peek(System.out::println)
+                .peek(s -> log.info("Processing transaction text: {}", s))
                 .map(transactionText -> new SourceDest(transactionText, MoneyTransaction.builder()))
                 .map(this::cutDateToRow)
                 .map(this::cutEconomicToRow)
@@ -66,7 +85,7 @@ public class RocketPdfParser {
                 .map(this::cutAllAsDescriptionToRow)
                 .map(sourceDest -> sourceDest.getTransactionData().build())
                 .map(categoryFiller::fillCategory)
-                .peek(System.out::println)
+                .peek(moneyTransaction -> log.info("Parsed transaction: {}", moneyTransaction))
                 .collect(Collectors.toList());
     }
 
@@ -120,14 +139,14 @@ public class RocketPdfParser {
      * @param lines string lines from page
      * @return list of texts where each text refers to one transaction
      */
-    private List<String> collectTransactionTexts(Stream<String> lines) {
+    private List<String> collectTransactionTexts(List<String> lines) {
         List<String> accumulator = new ArrayList<>();
         /*
          * If line is a beginning of transaction just adds it to the end of accumulator,
          * otherwise concat them to last element in accumulator.
          * Not 'collect' because algorithm not stateless and depends on order of lines from page
          */
-        lines.forEachOrdered(line -> {
+        lines.forEach(line -> {
             try {
                 if (PATTERN_START.matcher(line).matches()) {
                     accumulator.add(line);
@@ -208,7 +227,7 @@ public class RocketPdfParser {
             res = postEditing(res);
             return res;
         } catch (IOException e) {
-            System.err.println("An error occurred while read pdf source report.");
+            log.error("An error occurred while read pdf source report.");
             throw new RuntimeException(e);
         }
     }
