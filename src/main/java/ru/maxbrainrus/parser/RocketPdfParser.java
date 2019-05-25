@@ -23,10 +23,11 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 @Slf4j
 public class RocketPdfParser {
     public static final String РОКЕТ_WALLET = "Рокет карта";
+    public static final Pattern START_OF_DOCUMENT_TAIL_PATTERN = Pattern.compile("^(Руководитель отдела|Специалист)");
     private final KeyWordCategoryFiller categoryFiller;
     public static final Pattern AMOUNT_PATTERN = Pattern.compile(" (-?\\d+[ \\d]*([\\.,]\\d+)?) RUR");
     // Pattern that describes start of transaction's description
-    private static final Pattern PATTERN_START = Pattern.compile("((\\d{2}\\.\\d{2}\\.\\d{4})|( P2P)? ?([А-ЯЁ][ а-яё]+)).*RUR.*");
+    private static final Pattern START_TRANSACTION_LINE_PATTERN = Pattern.compile("((\\d{2}\\.\\d{2}\\.\\d{4})|( P2P)? ?([А-ЯЁ][ а-яё]+)).*RUR.*");
 
     public RocketPdfParser(KeyWordCategoryFiller categoryFiller) {
         this.categoryFiller = categoryFiller;
@@ -45,8 +46,8 @@ public class RocketPdfParser {
                 .filter(s -> !s.startsWith("Исходящий остаток:"))
                 .filter(s -> !s.startsWith("Дата Описание Расход"))
                 .filter(s -> !s.startsWith("Итог:"))
-                .filter(s -> !s.startsWith("Руководитель отдела"))
-                .filter(s -> !s.startsWith("Специалист"))
+//                .filter(s -> !s.startsWith("Руководитель отдела"))
+//                .filter(s -> !s.startsWith("Специалист"))
 //                .filter(s -> !s.matches("([А-ЯЁ][А-ЯЁа-яё]* ?){2,3}")) // ФИО руководителя отдела или специалиста
 //                .filter(s -> !s.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) // date at the end of document
 //                .filter(s -> !s.matches("№ [\\d\\-/A-Za-z]+"))
@@ -64,7 +65,7 @@ public class RocketPdfParser {
     private static int getIndexTailLine(List<String> input) {
         for (int i = 0; i < input.size(); i++) {
             String s = input.get(i);
-            if (s != null && s.startsWith("Руководитель отдела")) {
+            if (s != null && START_OF_DOCUMENT_TAIL_PATTERN.matcher(s).find()) {
                 return i;
             }
         }
@@ -148,7 +149,7 @@ public class RocketPdfParser {
          */
         lines.forEach(line -> {
             try {
-                if (PATTERN_START.matcher(line).matches()) {
+                if (START_TRANSACTION_LINE_PATTERN.matcher(line).matches()) {
                     accumulator.add(line);
                 } else {
                     int lastIndex = accumulator.size() - 1;
