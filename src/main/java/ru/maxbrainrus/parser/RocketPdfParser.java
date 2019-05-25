@@ -72,10 +72,9 @@ public class RocketPdfParser {
         return -1;
     }
 
-    private List<MoneyTransaction> parseTextOfPage(String textFromPage) {
-        List<String> linesFromPage = Arrays.asList(textFromPage.split("\n"));
-        log.info("Got lines from page:\n<START OF PAGE>\n{}\n <END OF PAGE>", String.join("\n", linesFromPage));
-        List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(linesFromPage));
+    private List<MoneyTransaction> parseTexts(List<String> documentTextsPerPage) {
+        List<String> linesFromDocument = splitByLines(documentTextsPerPage);
+        List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(linesFromDocument));
         return transactionTexts.stream()
                 .peek(s -> log.info("Processing transaction text: {}", s))
                 .map(transactionText -> new SourceDest(transactionText, MoneyTransaction.builder()))
@@ -87,6 +86,16 @@ public class RocketPdfParser {
                 .map(sourceDest -> sourceDest.getTransactionData().build())
                 .map(categoryFiller::fillCategory)
                 .peek(moneyTransaction -> log.info("Parsed transaction: {}", moneyTransaction))
+                .collect(Collectors.toList());
+    }
+
+    private List<String> splitByLines(List<String> documentTextsPerPage) {
+        return documentTextsPerPage.stream()
+                .flatMap(textFromPage -> {
+                    List<String> linesFromPage = Arrays.asList(textFromPage.split("\n"));
+                    log.info("Got lines from page:\n<START OF PAGE>\n{}\n <END OF PAGE>", String.join("\n", linesFromPage));
+                    return linesFromPage.stream();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -216,19 +225,22 @@ public class RocketPdfParser {
     }
 
     public List<MoneyTransaction> parsePdf(String fileName) {
+        List<String> textsPerPageFromPdf = getTextFromPdf(fileName);
+        List<MoneyTransaction> transactions = parseTexts(textsPerPageFromPdf);
+        return postEditing(transactions);
+    }
+
+    private List<String> getTextFromPdf(String fileName) {
         try (AutoClosablePdfReader reader = new AutoClosablePdfReader(fileName)) {
             int numberOfPages = reader.getNumberOfPages();
-            List<MoneyTransaction> res = new ArrayList<>();
+            List<String> res = new ArrayList<>(numberOfPages);
             for (int i = 1; i <= numberOfPages; i++) {
                 String textFromPage = PdfTextExtractor.getTextFromPage(reader, i);
-                // transaction can't be separated on several pdf pages
-                List<MoneyTransaction> transactions = parseTextOfPage(textFromPage);
-                res.addAll(transactions);
+                res.add(textFromPage);
             }
-            res = postEditing(res);
             return res;
         } catch (IOException e) {
-            log.error("An error occurred while read pdf source report.");
+            log.error("An error occurred while read pdf source report.", e);
             throw new RuntimeException(e);
         }
     }
