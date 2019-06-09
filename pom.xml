@@ -10,8 +10,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <apache.poi.version>3.17</apache.poi.version>
-        <auto-value.version>1.6.2</auto-value.version>
     </properties>
 
     <dependencies>
