@@ -1,4 +1,4 @@
-package ru.maxbrainrus.migrate;
+package ru.maxbrainrus.transaction;
 
 public enum OperationType {
     EXPENDITURE,

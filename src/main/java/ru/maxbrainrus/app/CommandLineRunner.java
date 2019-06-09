@@ -2,6 +2,7 @@ package ru.maxbrainrus.app;
 
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
+import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 import ru.maxbrainrus.parser.RocketParserController;
 
 import java.io.File;

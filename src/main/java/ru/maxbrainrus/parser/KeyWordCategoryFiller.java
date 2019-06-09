@@ -1,7 +1,7 @@
 package ru.maxbrainrus.parser;
 
-import ru.maxbrainrus.migrate.MoneyTransaction;
-import ru.maxbrainrus.migrate.OperationType;
+import ru.maxbrainrus.transaction.MoneyTransaction;
+import ru.maxbrainrus.transaction.OperationType;
 
 import java.util.Map;
 

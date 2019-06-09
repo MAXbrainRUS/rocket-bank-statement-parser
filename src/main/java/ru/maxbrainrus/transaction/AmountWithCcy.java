@@ -1,4 +1,4 @@
-package ru.maxbrainrus.migrate;
+package ru.maxbrainrus.transaction;
 
 import lombok.Builder;
 import lombok.Value;

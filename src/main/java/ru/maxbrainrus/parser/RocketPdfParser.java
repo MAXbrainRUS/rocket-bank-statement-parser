@@ -3,10 +3,10 @@ package ru.maxbrainrus.parser;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 import lombok.extern.slf4j.Slf4j;
-import ru.maxbrainrus.migrate.AmountWithCcy;
-import ru.maxbrainrus.migrate.Amounts;
-import ru.maxbrainrus.migrate.MoneyTransaction;
-import ru.maxbrainrus.migrate.OperationType;
+import ru.maxbrainrus.transaction.AmountWithCcy;
+import ru.maxbrainrus.transaction.Amounts;
+import ru.maxbrainrus.transaction.MoneyTransaction;
+import ru.maxbrainrus.transaction.OperationType;
 
 import java.io.IOException;
 import java.math.BigDecimal;

@@ -2,6 +2,7 @@ package ru.maxbrainrus.app;
 
 import org.apache.commons.io.IOUtils;
 import org.testng.annotations.Test;
+import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 
 import java.io.File;
 import java.io.FileWriter;

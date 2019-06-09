@@ -1,4 +1,4 @@
-package ru.maxbrainrus.app;
+package ru.maxbrainrus.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

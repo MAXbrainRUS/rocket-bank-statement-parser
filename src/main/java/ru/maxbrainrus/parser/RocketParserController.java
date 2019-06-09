@@ -1,7 +1,7 @@
 package ru.maxbrainrus.parser;
 
-import ru.maxbrainrus.migrate.MoneyTransaction;
 import ru.maxbrainrus.report.CsvReportMaker;
+import ru.maxbrainrus.transaction.MoneyTransaction;
 
 import java.util.List;
 import java.util.Map;

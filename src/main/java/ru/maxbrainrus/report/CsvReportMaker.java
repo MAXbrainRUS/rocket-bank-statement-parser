@@ -3,9 +3,9 @@ package ru.maxbrainrus.report;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import ru.maxbrainrus.migrate.AmountWithCcy;
-import ru.maxbrainrus.migrate.Amounts;
-import ru.maxbrainrus.migrate.MoneyTransaction;
+import ru.maxbrainrus.transaction.AmountWithCcy;
+import ru.maxbrainrus.transaction.Amounts;
+import ru.maxbrainrus.transaction.MoneyTransaction;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
