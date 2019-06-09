@@ -36,12 +36,11 @@ public class KeyWordCategoryFiller {
     }
 
     public MoneyTransaction fillCategory(MoneyTransaction transaction) {
-        for (Map.Entry<String, String> entry : keyWordsToCategoryMap.entrySet()) {
-            if (transaction.getDescription().contains(entry.getKey())) {
-                return enrichCategoryOrWallet(transaction, entry.getValue());
-            }
-        }
-        return transaction;
+        return keyWordsToCategoryMap.entrySet().stream()
+                .filter(entry -> transaction.getDescription().contains(entry.getKey()))
+                .findFirst()
+                .map(entry -> enrichCategoryOrWallet(transaction, entry.getValue()))
+                .orElse(transaction);
     }
 
 
