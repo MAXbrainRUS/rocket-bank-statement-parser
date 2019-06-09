@@ -17,11 +17,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static ru.maxbrainrus.migrate.MigrateTool.isZeroOrNull;
-
 @Slf4j
 public class CsvReportMaker {
-    public static final String[] REPORT_HEADERS = {
+    private static final String[] REPORT_HEADERS = {
             "Date",
             "OperationType",
             "SourceAmount",
@@ -30,7 +28,7 @@ public class CsvReportMaker {
             "SourceWallet",
             "TargetWallet"
     };
-    public static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.withHeader(REPORT_HEADERS);
+    private static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.withHeader(REPORT_HEADERS);
 
     public static void createReport(List<MoneyTransaction> transactions, String filename) {
         withOpenCsvToWrite(filename, CSV_FORMAT, csvPrinter -> {
@@ -88,4 +86,9 @@ public class CsvReportMaker {
             throw new RuntimeException(e);
         }
     }
+
+    private static boolean isZeroOrNull(BigDecimal amount) {
+        return amount == null || amount.signum() == 0;
+    }
+
 }
