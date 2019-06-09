@@ -12,21 +12,33 @@ public class KeyWordCategoryFiller {
         this.keyWordsToCategoryMap = keyWordsToCategoryMap;
     }
 
+    private static MoneyTransaction enrichCategoryOrWallet(MoneyTransaction transaction, String categoryOrWallet) {
+        if (transaction.getOperationType() == OperationType.TRANSFER) {
+            return enrichWallet(transaction, categoryOrWallet);
+        }
+        return enrichCategory(transaction, categoryOrWallet);
+    }
+
+    private static MoneyTransaction enrichCategory(MoneyTransaction transaction, String categoryOrWallet) {
+        return transaction.toBuilder()
+                .category(categoryOrWallet)
+                .build();
+    }
+
+    private static MoneyTransaction enrichWallet(MoneyTransaction transaction, String categoryOrWallet) {
+        MoneyTransaction.MoneyTransactionBuilder builder = transaction.toBuilder();
+        if (transaction.getSourceWallet() == null) {
+            builder.sourceWallet(categoryOrWallet);
+        } else if (transaction.getTargetWallet() == null) {
+            builder.targetWallet(categoryOrWallet);
+        }
+        return builder.build();
+    }
+
     public MoneyTransaction fillCategory(MoneyTransaction transaction) {
         for (Map.Entry<String, String> entry : keyWordsToCategoryMap.entrySet()) {
             if (transaction.getDescription().contains(entry.getKey())) {
-                MoneyTransaction.MoneyTransactionBuilder builder = transaction.toBuilder();
-                String categoryOrWallet = entry.getValue();
-                if (transaction.getOperationType() == OperationType.TRANSFER) {
-                    if (transaction.getSourceWallet() == null) {
-                        builder.sourceWallet(categoryOrWallet);
-                    } else if (transaction.getTargetWallet() == null) {
-                        builder.targetWallet(categoryOrWallet);
-                    }
-                } else {
-                    builder.category(categoryOrWallet);
-                }
-                return builder.build();
+                return enrichCategoryOrWallet(transaction, entry.getValue());
             }
         }
         return transaction;
