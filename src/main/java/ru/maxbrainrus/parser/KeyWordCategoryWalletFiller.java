@@ -1,10 +1,14 @@
 package ru.maxbrainrus.parser;
 
+import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 import ru.maxbrainrus.transaction.OperationType;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class KeyWordCategoryWalletFiller {
     private final Map<String, String> keyWordsToCategoryMap;
 
@@ -47,6 +51,12 @@ public class KeyWordCategoryWalletFiller {
                 .findFirst()
                 .map(entry -> enrichCategoryOrWallet(transaction, entry.getValue()))
                 .orElse(transaction);
+    }
+
+    public List<MoneyTransaction> fillCategoryOrWallet(List<MoneyTransaction> transactionList) {
+        return transactionList.stream()
+                .map(this::fillCategoryOrWallet)
+                .collect(Collectors.toList());
     }
 
 
