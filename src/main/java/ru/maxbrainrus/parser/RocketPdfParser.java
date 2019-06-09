@@ -1,14 +1,11 @@
 package ru.maxbrainrus.parser;
 
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.transaction.AmountWithCcy;
 import ru.maxbrainrus.transaction.Amounts;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 import ru.maxbrainrus.transaction.OperationType;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +16,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static ru.maxbrainrus.parser.PdfTextExtractor.getTextFromPdf;
 
 @Slf4j
 public class RocketPdfParser {
@@ -226,26 +224,6 @@ public class RocketPdfParser {
         return postEditing(transactions);
     }
 
-    /**
-     * Get text content from pdf file
-     *
-     * @param fileName name of file
-     * @return List of text content per page
-     */
-    private List<String> getTextFromPdf(String fileName) {
-        try (AutoClosablePdfReader reader = new AutoClosablePdfReader(fileName)) {
-            int numberOfPages = reader.getNumberOfPages();
-            List<String> res = new ArrayList<>(numberOfPages);
-            for (int i = 1; i <= numberOfPages; i++) {
-                String textFromPage = PdfTextExtractor.getTextFromPage(reader, i);
-                res.add(textFromPage);
-            }
-            return res;
-        } catch (IOException e) {
-            log.error("An error occurred while read pdf source report.", e);
-            throw new RuntimeException(e);
-        }
-    }
 
     private static MoneyTransaction rewriteDateWithOperationDate(MoneyTransaction transaction) {
         LocalDateTime operationDate = transaction.getOperationDate();
@@ -302,12 +280,5 @@ class SourceDest {
                 "transactionText='" + transactionText + '\'' +
                 ", transactionData=" + transactionData +
                 '}';
-    }
-}
-
-class AutoClosablePdfReader extends PdfReader implements AutoCloseable {
-
-    public AutoClosablePdfReader(String filename) throws IOException {
-        super(filename);
     }
 }
