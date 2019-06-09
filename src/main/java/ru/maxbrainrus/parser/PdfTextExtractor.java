@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.itextpdf.text.pdf.parser.PdfTextExtractor.getTextFromPage;
+
 @Slf4j
 public class PdfTextExtractor {
     /**
@@ -20,7 +22,7 @@ public class PdfTextExtractor {
             int numberOfPages = reader.getNumberOfPages();
             List<String> res = new ArrayList<>(numberOfPages);
             for (int i = 1; i <= numberOfPages; i++) {
-                String textFromPage = com.itextpdf.text.pdf.parser.PdfTextExtractor.getTextFromPage(reader, i);
+                String textFromPage = getTextFromPage(reader, i);
                 res.add(textFromPage);
             }
             return res;
