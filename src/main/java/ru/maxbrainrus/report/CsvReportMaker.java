@@ -25,7 +25,6 @@ public class CsvReportMaker {
             "Date",
             "OperationType",
             "SourceAmount",
-//            "DestinationAmount",
             "Category",
             "Description",
             "SourceWallet",
@@ -43,12 +42,10 @@ public class CsvReportMaker {
     private static void printTransaction(MoneyTransaction transaction, CSVPrinter csvPrinter) {
         try {
             List<BigDecimal> amounts = getAmounts(transaction);
-            BigDecimal destinationAmount = amounts.get(1);
             csvPrinter.printRecord(
                     transaction.getDate(),
                     transaction.getOperationType(),
                     amounts.get(0),
-//                    destinationAmount,
                     transaction.getCategory(),
                     transaction.getDescription(),
                     transaction.getSourceWallet(),

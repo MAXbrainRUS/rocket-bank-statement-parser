@@ -46,17 +46,13 @@ public class RocketPdfParser {
                 .filter(s -> !s.startsWith("Исходящий остаток:"))
                 .filter(s -> !s.startsWith("Дата Описание Расход"))
                 .filter(s -> !s.startsWith("Итог:"))
-//                .filter(s -> !s.startsWith("Руководитель отдела"))
-//                .filter(s -> !s.startsWith("Специалист"))
-//                .filter(s -> !s.matches("([А-ЯЁ][А-ЯЁа-яё]* ?){2,3}")) // ФИО руководителя отдела или специалиста
-//                .filter(s -> !s.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) // date at the end of document
-//                .filter(s -> !s.matches("№ [\\d\\-/A-Za-z]+"))
                 .collect(Collectors.toList()); // Id of document
     }
 
     private static List<String> filterEndOfDocument(List<String> lines) {
         int indexTailLine = getIndexTailLine(lines);
         if (indexTailLine == -1) {
+            log.warn("End of document is not found. Faked lines can be processed");
             return lines;
         }
         return lines.subList(0, indexTailLine);
@@ -230,6 +226,12 @@ public class RocketPdfParser {
         return postEditing(transactions);
     }
 
+    /**
+     * Get text content from pdf file
+     *
+     * @param fileName name of file
+     * @return List of text content per page
+     */
     private List<String> getTextFromPdf(String fileName) {
         try (AutoClosablePdfReader reader = new AutoClosablePdfReader(fileName)) {
             int numberOfPages = reader.getNumberOfPages();
