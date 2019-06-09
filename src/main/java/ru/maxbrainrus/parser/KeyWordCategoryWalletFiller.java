@@ -5,10 +5,10 @@ import ru.maxbrainrus.transaction.OperationType;
 
 import java.util.Map;
 
-public class KeyWordCategoryFiller {
+public class KeyWordCategoryWalletFiller {
     private final Map<String, String> keyWordsToCategoryMap;
 
-    public KeyWordCategoryFiller(Map<String, String> keyWordsToCategoryMap) {
+    public KeyWordCategoryWalletFiller(Map<String, String> keyWordsToCategoryMap) {
         this.keyWordsToCategoryMap = keyWordsToCategoryMap;
     }
 
@@ -41,7 +41,7 @@ public class KeyWordCategoryFiller {
         return transaction;
     }
 
-    public MoneyTransaction fillCategory(MoneyTransaction transaction) {
+    public MoneyTransaction fillCategoryOrWallet(MoneyTransaction transaction) {
         return keyWordsToCategoryMap.entrySet().stream()
                 .filter(entry -> transaction.getDescription().contains(entry.getKey()))
                 .findFirst()

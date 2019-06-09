@@ -9,8 +9,8 @@ import java.util.Map;
 public class RocketParserController {
 
     public static void makeReport(String inputDataFileName, String reportFileName, Map<String, String> keyWordsToCategoryMap) {
-        KeyWordCategoryFiller categoryFiller = new KeyWordCategoryFiller(keyWordsToCategoryMap);
-        RocketPdfParser rocketPdfParser = new RocketPdfParser(categoryFiller);
+        KeyWordCategoryWalletFiller categoryWalletFiller = new KeyWordCategoryWalletFiller(keyWordsToCategoryMap);
+        RocketPdfParser rocketPdfParser = new RocketPdfParser(categoryWalletFiller);
         List<MoneyTransaction> transactions = rocketPdfParser.parsePdf(inputDataFileName);
         CsvReportMaker.createReport(transactions, reportFileName);
     }
