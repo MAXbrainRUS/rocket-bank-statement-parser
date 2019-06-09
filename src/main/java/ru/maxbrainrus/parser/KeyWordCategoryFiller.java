@@ -26,13 +26,19 @@ public class KeyWordCategoryFiller {
     }
 
     private static MoneyTransaction enrichWallet(MoneyTransaction transaction, String categoryOrWallet) {
-        MoneyTransaction.MoneyTransactionBuilder builder = transaction.toBuilder();
+        // One of wallet already filled with default wallet value
+        // Fill other (not filled) wallet
         if (transaction.getSourceWallet() == null) {
-            builder.sourceWallet(categoryOrWallet);
-        } else if (transaction.getTargetWallet() == null) {
-            builder.targetWallet(categoryOrWallet);
+            return transaction.toBuilder()
+                    .sourceWallet(categoryOrWallet)
+                    .build();
         }
-        return builder.build();
+        if (transaction.getTargetWallet() == null) {
+            return transaction.toBuilder()
+                    .targetWallet(categoryOrWallet)
+                    .build();
+        }
+        return transaction;
     }
 
     public MoneyTransaction fillCategory(MoneyTransaction transaction) {
