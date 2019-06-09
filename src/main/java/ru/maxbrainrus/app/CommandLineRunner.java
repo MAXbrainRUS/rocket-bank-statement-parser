@@ -1,5 +1,6 @@
 package ru.maxbrainrus.app;
 
+import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
 import ru.maxbrainrus.parser.RocketParserController;
 
@@ -8,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @CommandLine.Command(name = "rocketParser", mixinStandardHelpOptions = true, version = "1.0")
 public class CommandLineRunner implements Runnable {
     public static final String DEFAULT_KEY_WORDS_TO_CATEGORY_MAP_JSON_PATH = "KeyWordsToCategoryMap.json";
@@ -43,6 +45,7 @@ public class CommandLineRunner implements Runnable {
         if (pathToKeyWordToMapConfig.isFile() && pathToKeyWordToMapConfig.exists()) {
             return Optional.of(pathToKeyWordToMapConfig);
         }
+        log.warn("File config with category mapping is not found. Transactions won't be categorized");
         return Optional.empty();
     }
 }
