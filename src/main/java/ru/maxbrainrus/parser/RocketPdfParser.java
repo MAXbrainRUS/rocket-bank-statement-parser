@@ -65,7 +65,7 @@ public class RocketPdfParser {
         List<String> linesFromDocument = splitByLines(documentTextsPerPage);
         List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(linesFromDocument));
         return transactionTexts.stream()
-                .peek(s -> log.info("Processing transaction text: {}", s))
+                .peek(s -> log.info("Got transaction text: {}", s))
                 .map(transactionText -> new SourceDest(transactionText, MoneyTransaction.builder()))
                 .map(this::cutDateToRow)
                 .map(this::cutEconomicToRow)
