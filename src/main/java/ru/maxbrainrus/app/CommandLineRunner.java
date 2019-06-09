@@ -35,11 +35,14 @@ public class CommandLineRunner implements Runnable {
 
     @Override
     public void run() {
-        Map<String, String> keyWordsToCategoryMap = getConfigFileMapKeyWordsToCategory()
+        Map<String, String> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
+        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap);
+    }
+
+    private Map<String, String> getKeyWordsToCategoryOrWalletMapping() {
+        return getConfigFileMapKeyWordsToCategory()
                 .map(KeyWordsToCategoryMapJsonParser::parseConfigJson)
                 .orElse(Collections.emptyMap());
-
-        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryMap);
     }
 
     private Optional<File> getConfigFileMapKeyWordsToCategory() {
