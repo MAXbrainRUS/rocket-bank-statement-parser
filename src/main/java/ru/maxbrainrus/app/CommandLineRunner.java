@@ -56,7 +56,7 @@ public class CommandLineRunner implements Runnable {
                 .orElse(Collections.emptyMap());
 
         LocalDate cutDate = parseCutDate(cutDateStringValue);
-        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryMap);
+        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryMap, cutDate);
     }
 
     private Optional<File> getConfigFileMapKeyWordsToCategory() {
