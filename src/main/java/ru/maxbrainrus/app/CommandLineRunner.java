@@ -1,11 +1,14 @@
 package ru.maxbrainrus.app;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 import ru.maxbrainrus.parser.RocketParserController;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -15,11 +18,16 @@ import java.util.Optional;
 public class CommandLineRunner implements Runnable {
     public static final String DEFAULT_KEY_WORDS_TO_CATEGORY_MAP_JSON_PATH = "KeyWordsToCategoryMap.json";
     public static final String customCategoryMapOptionDescription = "Specific path to json file with map {\"key word\":\"category\"} for auto filling of category for transactions. By default try to use " + DEFAULT_KEY_WORDS_TO_CATEGORY_MAP_JSON_PATH + " in the app working directory";
+    public static final String DATE_PATTERN = "dd-mm-yyyy";
 
     @CommandLine.Option(names = {"-m", "--custom-category-map"},
             description = customCategoryMapOptionDescription,
             defaultValue = DEFAULT_KEY_WORDS_TO_CATEGORY_MAP_JSON_PATH)
     private File pathToKeyWordToMapConfig;
+
+    @CommandLine.Option(names = {"-c", "--cut-date"},
+            description = "Remove all transactions with date less or equals this date from report. Date format is " + DATE_PATTERN)
+    private String cutDateStringValue;
 
     @CommandLine.Parameters(index = "0", descriptionKey = "source.pdf", description = "rocket statement pdf file")
     private String sourceStatementFilename;
@@ -33,12 +41,21 @@ public class CommandLineRunner implements Runnable {
         CommandLine.run(new CommandLineRunner(), args);
     }
 
+    private static LocalDate parseCutDate(String cutDateStringValue) {
+        LocalDate cutDate = null;
+        if (!StringUtils.isBlank(cutDateStringValue)) {
+            cutDate = LocalDate.parse(cutDateStringValue, DateTimeFormatter.ofPattern(DATE_PATTERN));
+        }
+        return cutDate;
+    }
+
     @Override
     public void run() {
         Map<String, String> keyWordsToCategoryMap = getConfigFileMapKeyWordsToCategory()
                 .map(KeyWordsToCategoryMapJsonParser::parseConfigJson)
                 .orElse(Collections.emptyMap());
 
+        LocalDate cutDate = parseCutDate(cutDateStringValue);
         RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryMap);
     }
 
