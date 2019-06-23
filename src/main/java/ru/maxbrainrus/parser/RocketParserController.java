@@ -1,6 +1,5 @@
 package ru.maxbrainrus.parser;
 
-import com.sun.istack.internal.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.report.CsvReportMaker;
 import ru.maxbrainrus.transaction.MoneyTransaction;
@@ -24,7 +23,7 @@ public class RocketParserController {
         CsvReportMaker.createReport(transactions, reportFileName);
     }
 
-    private static List<MoneyTransaction> removeOldTransactions(List<MoneyTransaction> transactions, @NotNull LocalDate cutDate) {
+    private static List<MoneyTransaction> removeOldTransactions(List<MoneyTransaction> transactions, @Nullable LocalDate cutDate) {
         transactions = transactions.stream()
                 .filter(moneyTransaction -> moneyTransaction.getDate().isAfter(cutDate))
                 .collect(Collectors.toList());
