@@ -18,7 +18,7 @@ import java.util.Optional;
 public class CommandLineRunner implements Runnable {
     public static final String DEFAULT_KEY_WORDS_TO_CATEGORY_MAP_JSON_PATH = "KeyWordsToCategoryMap.json";
     public static final String customCategoryMapOptionDescription = "Specific path to json file with map {\"key word\":\"category\"} for auto filling of category for transactions. By default try to use " + DEFAULT_KEY_WORDS_TO_CATEGORY_MAP_JSON_PATH + " in the app working directory";
-    public static final String DATE_PATTERN = "dd-mm-yyyy";
+    public static final String DATE_PATTERN = "dd-MM-yyyy";
 
     @CommandLine.Option(names = {"-m", "--custom-category-map"},
             description = customCategoryMapOptionDescription,
