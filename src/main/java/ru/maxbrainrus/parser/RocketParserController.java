@@ -1,5 +1,6 @@
 package ru.maxbrainrus.parser;
 
+import com.sun.istack.internal.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.report.CsvReportMaker;
 import ru.maxbrainrus.transaction.MoneyTransaction;
@@ -18,15 +19,21 @@ public class RocketParserController {
         transactions = fillCategoriesAndWallets(keyWordsToCategoryMap, transactions);
         logTransactions(transactions);
         if (cutDate != null) {
-            transactions = transactions.stream()
-                    .filter(moneyTransaction -> moneyTransaction.getDate().isAfter(cutDate))
-                    .collect(Collectors.toList());
+            transactions = removeOldTransactions(transactions, cutDate);
         }
         CsvReportMaker.createReport(transactions, reportFileName);
     }
 
+    private static List<MoneyTransaction> removeOldTransactions(List<MoneyTransaction> transactions, @NotNull LocalDate cutDate) {
+        transactions = transactions.stream()
+                .filter(moneyTransaction -> moneyTransaction.getDate().isAfter(cutDate))
+                .collect(Collectors.toList());
+        log.info("Transactions after cutting using cut date {}: {}", cutDate, transactions);
+        return transactions;
+    }
+
     private static void logTransactions(List<MoneyTransaction> transactions) {
-        transactions.forEach(moneyTransaction -> log.info("Parsed transaction: {}", moneyTransaction));
+        transactions.forEach(moneyTransaction -> log.info("Parsed transaction" + ": {}", moneyTransaction));
     }
 
     private static List<MoneyTransaction> fillCategoriesAndWallets(Map<String, String> keyWordsToCategoryMap, List<MoneyTransaction> transactions) {
