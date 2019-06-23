@@ -22,14 +22,9 @@ import static ru.maxbrainrus.parser.PdfTextExtractor.getTextFromPdf;
 public class RocketPdfParser {
     public static final String РОКЕТ_WALLET = "Рокет карта";
     public static final Pattern START_OF_DOCUMENT_TAIL_PATTERN = Pattern.compile("^(Руководитель отдела|Специалист)");
-    private final KeyWordCategoryFiller categoryFiller;
     public static final Pattern AMOUNT_PATTERN = Pattern.compile(" (-?\\d+[ \\d]*([\\.,]\\d+)?) RUR");
     // Pattern that describes start of transaction's description
     private static final Pattern START_TRANSACTION_LINE_PATTERN = Pattern.compile("((\\d{2}\\.\\d{2}\\.\\d{4})|( P2P)? ?([А-ЯЁ][ а-яё]+)).*RUR.*");
-
-    public RocketPdfParser(KeyWordCategoryFiller categoryFiller) {
-        this.categoryFiller = categoryFiller;
-    }
 
     private static List<String> filterNonTransactionLines(List<String> input) {
         return filterEndOfDocument(input).stream()
@@ -66,24 +61,22 @@ public class RocketPdfParser {
         return -1;
     }
 
-    private List<MoneyTransaction> parseTexts(List<String> documentTextsPerPage) {
+    private static List<MoneyTransaction> parseTexts(List<String> documentTextsPerPage) {
         List<String> linesFromDocument = splitByLines(documentTextsPerPage);
         List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(linesFromDocument));
         return transactionTexts.stream()
-                .peek(s -> log.info("Processing transaction text: {}", s))
+                .peek(s -> log.info("Got transaction text: {}", s))
                 .map(transactionText -> new SourceDest(transactionText, MoneyTransaction.builder()))
-                .map(this::cutDateToRow)
-                .map(this::cutEconomicToRow)
-                .map(this::cutOperationDateToRow)
-                .map(this::cutGarbage)
-                .map(this::cutAllAsDescriptionToRow)
+                .map(RocketPdfParser::cutDateToRow)
+                .map(RocketPdfParser::cutEconomicToRow)
+                .map(RocketPdfParser::cutOperationDateToRow)
+                .map(RocketPdfParser::cutGarbage)
+                .map(RocketPdfParser::cutAllAsDescriptionToRow)
                 .map(sourceDest -> sourceDest.getTransactionData().build())
-                .map(categoryFiller::fillCategory)
-                .peek(moneyTransaction -> log.info("Parsed transaction: {}", moneyTransaction))
                 .collect(Collectors.toList());
     }
 
-    private List<String> splitByLines(List<String> documentTextsPerPage) {
+    private static List<String> splitByLines(List<String> documentTextsPerPage) {
         return documentTextsPerPage.stream()
                 .flatMap(textFromPage -> {
                     List<String> linesFromPage = Arrays.asList(textFromPage.split("\n"));
@@ -105,7 +98,7 @@ public class RocketPdfParser {
         return transactionText;
     }
 
-    private SourceDest cutGarbage(SourceDest sourceDest) {
+    private static SourceDest cutGarbage(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         s = s
                 .replaceAll(" {2,}", " ") // extra spaces after deletions
@@ -115,14 +108,14 @@ public class RocketPdfParser {
         return new SourceDest(s, sourceDest.getTransactionData());
     }
 
-    private SourceDest cutAllAsDescriptionToRow(SourceDest sourceDest) {
+    private static SourceDest cutAllAsDescriptionToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
         builder.description(s);
         return new SourceDest(s, builder);
     }
 
-    private SourceDest cutOperationDateToRow(SourceDest sourceDest) {
+    private static SourceDest cutOperationDateToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
         Matcher operationDateMatcher = Pattern.compile(", ?дата +операции: ?(\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2})").matcher(s);
@@ -143,7 +136,7 @@ public class RocketPdfParser {
      * @param lines string lines from page
      * @return list of texts where each text refers to one transaction
      */
-    private List<String> collectTransactionTexts(List<String> lines) {
+    private static List<String> collectTransactionTexts(List<String> lines) {
         List<String> accumulator = new ArrayList<>();
         /*
          * If line is a beginning of transaction just adds it to the end of accumulator,
@@ -166,7 +159,7 @@ public class RocketPdfParser {
         return accumulator;
     }
 
-    private void setRoketWalletToTransaction(MoneyTransaction.MoneyTransactionBuilder builder, BigDecimal amount, OperationType operationType) {
+    private static void setRoketWalletToTransaction(MoneyTransaction.MoneyTransactionBuilder builder, BigDecimal amount, OperationType operationType) {
         if (operationType == OperationType.TRANSFER) {
             if (amount.signum() > 0) {
                 builder.targetWallet(РОКЕТ_WALLET);
@@ -178,7 +171,7 @@ public class RocketPdfParser {
         }
     }
 
-    private OperationType getOperationType(BigDecimal amount, String transactionText) {
+    private static OperationType getOperationType(BigDecimal amount, String transactionText) {
         if (transactionText.contains("перевод") || transactionText.contains("Перевод")) {
             return OperationType.TRANSFER;
         } else if (amount.signum() > 0) {
@@ -188,11 +181,11 @@ public class RocketPdfParser {
         }
     }
 
-    private void setAmount(BigDecimal amount, MoneyTransaction.MoneyTransactionBuilder builder) {
+    private static void setAmount(BigDecimal amount, MoneyTransaction.MoneyTransactionBuilder builder) {
         builder.amounts(Amounts.builder().sourceAmount(AmountWithCcy.builder().amount(amount.abs()).build()).build());
     }
 
-    private SourceDest cutDateToRow(SourceDest sourceDest) {
+    private static SourceDest cutDateToRow(SourceDest sourceDest) {
         String s = sourceDest.getTransactionText();
         MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
         Matcher dateMatcher = Pattern.compile("^\\d{2}\\.\\d{2}\\.\\d{4}").matcher(s);
@@ -203,7 +196,7 @@ public class RocketPdfParser {
         return new SourceDest(s, builder);
     }
 
-    private SourceDest cutEconomicToRow(SourceDest sourceDest) {
+    private static SourceDest cutEconomicToRow(SourceDest sourceDest) {
         String transactionText = sourceDest.getTransactionText();
         MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
         List<BigDecimal> amounts = new ArrayList<>();
@@ -218,7 +211,7 @@ public class RocketPdfParser {
         return new SourceDest(transactionText, builder);
     }
 
-    public List<MoneyTransaction> parsePdf(String fileName) {
+    public static List<MoneyTransaction> parsePdf(String fileName) {
         List<String> textsPerPageFromPdf = getTextFromPdf(fileName);
         List<MoneyTransaction> transactions = parseTexts(textsPerPageFromPdf);
         return postEditing(transactions);
@@ -243,7 +236,7 @@ public class RocketPdfParser {
         return res;
     }
 
-    private List<MoneyTransaction> postEditing(List<MoneyTransaction> transactions) {
+    private static List<MoneyTransaction> postEditing(List<MoneyTransaction> transactions) {
         // If transactions are in one day, only first transaction will be with filled date.
         // Fill dates from upper transactions
         List<MoneyTransaction> res = fillDatesFromTransactionsAbove(transactions);
