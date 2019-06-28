@@ -20,13 +20,13 @@ import java.util.function.Consumer;
 @Slf4j
 public class CsvReportMaker {
     private static final String[] REPORT_HEADERS = {
-            "Date",
-            "OperationType",
-            "SourceAmount",
-            "Category",
-            "Description",
-            "SourceWallet",
-            "TargetWallet"
+            "Дата",
+            "Тип транзакции",
+            "Сумма",
+            "Категория",
+            "Описание",
+            "Наличность",
+            "Наличность (куда)"
     };
     private static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.withHeader(REPORT_HEADERS);
 
@@ -42,7 +42,7 @@ public class CsvReportMaker {
             List<BigDecimal> amounts = getAmounts(transaction);
             csvPrinter.printRecord(
                     transaction.getDate(),
-                    transaction.getOperationType(),
+                    transaction.getOperationType().getExportName(),
                     amounts.get(0),
                     transaction.getCategory(),
                     transaction.getDescription(),

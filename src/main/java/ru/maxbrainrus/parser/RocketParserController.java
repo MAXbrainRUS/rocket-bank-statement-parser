@@ -13,7 +13,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RocketParserController {
 
-    public static void makeReport(String inputDataFileName, String reportFileName, Map<String, String> keyWordsToCategoryMap, @Nullable LocalDate cutDate) {
+    public static void makeReport(String inputDataFileName,
+                                  String reportFileName,
+                                  Map<String, String> keyWordsToCategoryMap,
+                                  @Nullable LocalDate cutDate) {
         List<MoneyTransaction> transactions = RocketPdfParser.parsePdf(inputDataFileName);
         transactions = fillCategoriesAndWallets(keyWordsToCategoryMap, transactions);
         logTransactions(transactions);
