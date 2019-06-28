@@ -20,11 +20,15 @@ import static ru.maxbrainrus.parser.PdfTextExtractor.getTextFromPdf;
 
 @Slf4j
 public class RocketPdfParser {
-    public static final String РОКЕТ_WALLET = "Рокет карта";
     public static final Pattern START_OF_DOCUMENT_TAIL_PATTERN = Pattern.compile("^(Руководитель отдела|Специалист)");
     public static final Pattern AMOUNT_PATTERN = Pattern.compile(" (-?\\d+[ \\d]*([\\.,]\\d+)?) RUR");
     // Pattern that describes start of transaction's description
     private static final Pattern START_TRANSACTION_LINE_PATTERN = Pattern.compile("((\\d{2}\\.\\d{2}\\.\\d{4})|( P2P)? ?([А-ЯЁ][ а-яё]+)).*RUR.*");
+    private final String sourceWallet;
+
+    public RocketPdfParser(String sourceWallet) {
+        this.sourceWallet = sourceWallet;
+    }
 
     private static List<String> filterNonTransactionLines(List<String> input) {
         return filterEndOfDocument(input).stream()
@@ -61,14 +65,14 @@ public class RocketPdfParser {
         return -1;
     }
 
-    private static List<MoneyTransaction> parseTexts(List<String> documentTextsPerPage) {
+    private List<MoneyTransaction> parseTexts(List<String> documentTextsPerPage) {
         List<String> linesFromDocument = splitByLines(documentTextsPerPage);
         List<String> transactionTexts = collectTransactionTexts(filterNonTransactionLines(linesFromDocument));
         return transactionTexts.stream()
                 .peek(s -> log.info("Got transaction text: {}", s))
                 .map(transactionText -> new SourceDest(transactionText, MoneyTransaction.builder()))
                 .map(RocketPdfParser::cutDateToRow)
-                .map(RocketPdfParser::cutEconomicToRow)
+                .map(this::cutEconomicToRow)
                 .map(RocketPdfParser::cutOperationDateToRow)
                 .map(RocketPdfParser::cutGarbage)
                 .map(RocketPdfParser::cutAllAsDescriptionToRow)
@@ -159,15 +163,15 @@ public class RocketPdfParser {
         return accumulator;
     }
 
-    private static void setRoketWalletToTransaction(MoneyTransaction.MoneyTransactionBuilder builder, BigDecimal amount, OperationType operationType) {
+    private void setRoketWalletToTransaction(MoneyTransaction.MoneyTransactionBuilder builder, BigDecimal amount, OperationType operationType) {
         if (operationType == OperationType.TRANSFER) {
             if (amount.signum() > 0) {
-                builder.targetWallet(РОКЕТ_WALLET);
+                builder.targetWallet(sourceWallet);
             } else {
-                builder.sourceWallet(РОКЕТ_WALLET);
+                builder.sourceWallet(sourceWallet);
             }
         } else {
-            builder.sourceWallet(РОКЕТ_WALLET);
+            builder.sourceWallet(sourceWallet);
         }
     }
 
@@ -196,7 +200,7 @@ public class RocketPdfParser {
         return new SourceDest(s, builder);
     }
 
-    private static SourceDest cutEconomicToRow(SourceDest sourceDest) {
+    private SourceDest cutEconomicToRow(SourceDest sourceDest) {
         String transactionText = sourceDest.getTransactionText();
         MoneyTransaction.MoneyTransactionBuilder builder = sourceDest.getTransactionData();
         List<BigDecimal> amounts = new ArrayList<>();
@@ -211,7 +215,7 @@ public class RocketPdfParser {
         return new SourceDest(transactionText, builder);
     }
 
-    public static List<MoneyTransaction> parsePdf(String fileName) {
+    public List<MoneyTransaction> parsePdf(String fileName) {
         List<String> textsPerPageFromPdf = getTextFromPdf(fileName);
         List<MoneyTransaction> transactions = parseTexts(textsPerPageFromPdf);
         return postEditing(transactions);

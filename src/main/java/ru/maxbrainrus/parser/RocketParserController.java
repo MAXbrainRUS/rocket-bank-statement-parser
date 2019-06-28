@@ -16,8 +16,10 @@ public class RocketParserController {
     public static void makeReport(String inputDataFileName,
                                   String reportFileName,
                                   Map<String, String> keyWordsToCategoryMap,
-                                  @Nullable LocalDate cutDate) {
-        List<MoneyTransaction> transactions = RocketPdfParser.parsePdf(inputDataFileName);
+                                  @Nullable LocalDate cutDate,
+                                  String sourceWallet) {
+        RocketPdfParser rocketPdfParser = new RocketPdfParser(sourceWallet);
+        List<MoneyTransaction> transactions = rocketPdfParser.parsePdf(inputDataFileName);
         transactions = fillCategoriesAndWallets(keyWordsToCategoryMap, transactions);
         logTransactions(transactions);
         if (cutDate != null) {

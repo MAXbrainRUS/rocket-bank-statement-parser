@@ -29,6 +29,11 @@ public class CommandLineRunner implements Runnable {
             description = "Remove all transactions with date less or equals this date from report. Date format is " + DATE_PATTERN)
     private String cutDateStringValue;
 
+    @CommandLine.Option(names = {"-w", "--wallet"},
+            description = "Name of wallet (source of transactions)",
+            defaultValue = "Рокет карта")
+    private String sourceWallet;
+
     @CommandLine.Parameters(index = "0", descriptionKey = "source.pdf", description = "rocket statement pdf file")
     private String sourceStatementFilename;
 
@@ -53,7 +58,7 @@ public class CommandLineRunner implements Runnable {
     public void run() {
         Map<String, String> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
         LocalDate cutDate = parseCutDate(cutDateStringValue);
-        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate);
+        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet);
     }
 
     private Map<String, String> getKeyWordsToCategoryOrWalletMapping() {
