@@ -1,7 +1,10 @@
 package ru.maxbrainrus.app;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 import ru.maxbrainrus.parser.RocketParserController;
@@ -41,6 +44,10 @@ public class CommandLineRunner implements Runnable {
             defaultValue = "report.csv")
     private String reportFilename;
 
+    @CommandLine.Option(names = {"-q", "--quiet"},
+            description = "Quiet output - only show errors")
+    private boolean isQuiet;
+
 
     public static void main(String[] args) {
         CommandLine.run(new CommandLineRunner(), args);
@@ -56,9 +63,17 @@ public class CommandLineRunner implements Runnable {
 
     @Override
     public void run() {
+        setLoggerLevel();
         Map<String, String> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
         LocalDate cutDate = parseCutDate(cutDateStringValue);
         RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet);
+    }
+
+    private void setLoggerLevel() {
+        if (isQuiet) {
+            Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            root.setLevel(Level.ERROR);
+        }
     }
 
     private Map<String, String> getKeyWordsToCategoryOrWalletMapping() {
