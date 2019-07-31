@@ -1,5 +1,7 @@
 package ru.maxbrainrus.parser;
 
+import lombok.AllArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.transaction.AmountWithCcy;
 import ru.maxbrainrus.transaction.Amounts;
@@ -254,28 +256,9 @@ public class RocketPdfParser {
     }
 }
 
+@Value
+@AllArgsConstructor
 class SourceDest {
     private String transactionText;
     private MoneyTransaction.MoneyTransactionBuilder transactionData;
-
-    public SourceDest(String transactionText, MoneyTransaction.MoneyTransactionBuilder transactionData) {
-        this.transactionText = transactionText;
-        this.transactionData = transactionData;
-    }
-
-    public String getTransactionText() {
-        return transactionText;
-    }
-
-    public MoneyTransaction.MoneyTransactionBuilder getTransactionData() {
-        return transactionData;
-    }
-
-    @Override
-    public String toString() {
-        return "SourceDest{" +
-                "transactionText='" + transactionText + '\'' +
-                ", transactionData=" + transactionData +
-                '}';
-    }
 }
