@@ -9,7 +9,6 @@ public enum OperationType {
     private final String exportName;
 
     OperationType(String exportName) {
-
         this.exportName = exportName;
     }
 
