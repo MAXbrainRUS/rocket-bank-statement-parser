@@ -246,11 +246,8 @@ public class RocketPdfParser {
         // If transactions are in one day, only first transaction will be with filled date.
         // Fill dates from upper transactions
         List<MoneyTransaction> res = fillDatesFromTransactionsAbove(transactions);
-        // If transaction date has operation date it will be more suit.
-        // Transactions from shops has date when money income to bank. It happens after few days after operation date.
         return res.stream()
                 .filter(moneyTransaction -> !isEmpty(moneyTransaction.getDescription())) // fake transaction with date only should be removed
-                .map(RocketPdfParser::rewriteDateWithOperationDate)
                 .sorted(Comparator.comparing(MoneyTransaction::getDate))
                 .collect(Collectors.toList());
     }
