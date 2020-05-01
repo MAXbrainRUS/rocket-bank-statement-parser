@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static ru.maxbrainrus.parser.PdfTextExtractor.getTextFromPdf;
+import static ru.maxbrainrus.parser.pdf.PdfTextExtractor.getTextFromPdf;
 
 @Slf4j
 public class RocketPdfParser {

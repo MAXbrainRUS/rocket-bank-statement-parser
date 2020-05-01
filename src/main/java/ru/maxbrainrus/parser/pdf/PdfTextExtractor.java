@@ -1,4 +1,4 @@
-package ru.maxbrainrus.parser;
+package ru.maxbrainrus.parser.pdf;
 
 import com.itextpdf.text.pdf.PdfReader;
 import lombok.extern.slf4j.Slf4j;
