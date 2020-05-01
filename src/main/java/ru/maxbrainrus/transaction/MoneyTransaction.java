@@ -12,6 +12,7 @@ public class MoneyTransaction {
     OperationType operationType;
     LocalDate date;
     String description;
+    String seller;
     Amounts amounts;
     String category;
     String sourceWallet;
