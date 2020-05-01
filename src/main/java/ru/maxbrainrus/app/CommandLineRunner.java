@@ -37,7 +37,7 @@ public class CommandLineRunner implements Runnable {
             defaultValue = "Рокет карта")
     private String sourceWallet;
 
-    @CommandLine.Parameters(index = "0", descriptionKey = "source.pdf", description = "rocket statement pdf file")
+    @CommandLine.Parameters(index = "0", descriptionKey = "source.scv", description = "bank statement file")
     private String sourceStatementFilename;
 
     @CommandLine.Parameters(index = "1", descriptionKey = "report.csv", description = "result report filename",
