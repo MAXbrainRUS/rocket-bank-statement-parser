@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
-import ru.maxbrainrus.parser.RocketParserController;
+import ru.maxbrainrus.parser.ReportGeneratorFacade;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -66,7 +66,7 @@ public class CommandLineRunner implements Runnable {
         setLoggerLevel();
         Map<String, String> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
         LocalDate cutDate = parseCutDate(cutDateStringValue);
-        RocketParserController.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet);
+        ReportGeneratorFacade.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet);
     }
 
     private void setLoggerLevel() {

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class RocketParserController {
+public class ReportGeneratorFacade {
 
     public static void makeReport(String inputDataFileName,
                                   String reportFileName,
