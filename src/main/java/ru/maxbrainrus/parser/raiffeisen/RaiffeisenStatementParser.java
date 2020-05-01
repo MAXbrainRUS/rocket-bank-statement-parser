@@ -49,13 +49,8 @@ public class RaiffeisenStatementParser implements StatementParser {
                 .amounts(getAmount(record))
                 .sourceWallet(sourceWallet)
                 .description(getDescription(record))
-                .seller(getSeller(record))
                 .operationType(OperationType.EXPENDITURE)
                 .build();
-    }
-
-    private String getSeller(CSVRecord record) {
-        return record.get("Продавец");
     }
 
     private String getDescription(CSVRecord record) {
@@ -81,8 +76,18 @@ public class RaiffeisenStatementParser implements StatementParser {
     }
 
     private LocalDate getOperationDate(CSVRecord record) {
-        String operationDateValue = record.get("Дата операции");
+        String operationDateValue = readOperationDate(record);
         return LocalDateTime.parse(operationDateValue, DATE_TIME_FORMATTER).toLocalDate();
+    }
+
+    private String readOperationDate(CSVRecord record) {
+        if (record.isMapped("Дата операции")) {
+            return record.get("Дата операции");
+        } else if (record.isMapped("Дата транзакции")) {
+            return record.get("Дата транзакции");
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     private CSVFormat getCsvFormat() {
