@@ -1,4 +1,4 @@
-package ru.maxbrainrus.parser;
+package ru.maxbrainrus.parser.rocket;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

@@ -1,6 +1,7 @@
 package ru.maxbrainrus.parser;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.maxbrainrus.parser.rocket.RocketPdfParser;
 import ru.maxbrainrus.report.CsvReportMaker;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 
