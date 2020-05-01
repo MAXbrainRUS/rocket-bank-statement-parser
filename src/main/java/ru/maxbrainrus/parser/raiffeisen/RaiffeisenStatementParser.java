@@ -43,13 +43,42 @@ public class RaiffeisenStatementParser implements StatementParser {
         }
     }
 
+    private static void setWalletValue(MoneyTransaction.MoneyTransactionBuilder builder, String sourceWallet, BigDecimal amount, OperationType operationType) {
+        if (operationType == OperationType.TRANSFER) {
+            if (amount.signum() > 0) {
+                builder.targetWallet(sourceWallet);
+            } else {
+                builder.sourceWallet(sourceWallet);
+            }
+        } else {
+            builder.sourceWallet(sourceWallet);
+        }
+    }
+
+    private static OperationType getOperationType(BigDecimal amount, String transactionText) {
+        if (transactionText.contains("перевод") || transactionText.contains("Перевод")) {
+            return OperationType.TRANSFER;
+        } else if (amount.signum() > 0) {
+            return OperationType.INCOME;
+        } else {
+            return OperationType.EXPENDITURE;
+        }
+    }
+
     private MoneyTransaction readTransaction(CSVRecord record, String sourceWallet) {
-        return MoneyTransaction.builder()
+        BigDecimal amount = readAmount(record);
+        String description = getDescription(record);
+        OperationType operationType = getOperationType(amount, description);
+
+        MoneyTransaction.MoneyTransactionBuilder moneyTransactionBuilder = MoneyTransaction.builder()
                 .date(getOperationDate(record))
-                .amounts(getAmount(record))
-                .sourceWallet(sourceWallet)
-                .description(getDescription(record))
-                .operationType(OperationType.EXPENDITURE)
+                .amounts(getAmount(amount.abs()))
+                .description(description)
+                .operationType(operationType);
+
+        setWalletValue(moneyTransactionBuilder, sourceWallet, amount, operationType);
+
+        return moneyTransactionBuilder
                 .build();
     }
 
@@ -57,8 +86,7 @@ public class RaiffeisenStatementParser implements StatementParser {
         return record.get("Описание");
     }
 
-    private Amounts getAmount(CSVRecord record) {
-        BigDecimal amount = readAmount(record);
+    private Amounts getAmount(BigDecimal amount) {
         return Amounts.builder()
                 .sourceAmount(
                         AmountWithCcy.builder()
@@ -70,9 +98,7 @@ public class RaiffeisenStatementParser implements StatementParser {
     private BigDecimal readAmount(CSVRecord record) {
         String amountValue = record.get("Сумма в валюте счета");
         amountValue = amountValue.replaceAll(" ", "");
-        BigDecimal amount = new BigDecimal(amountValue);
-        amount = amount.abs();
-        return amount;
+        return new BigDecimal(amountValue);
     }
 
     private LocalDate getOperationDate(CSVRecord record) {
