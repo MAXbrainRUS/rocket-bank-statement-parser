@@ -47,7 +47,7 @@ public class KeyWordCategoryWalletFiller {
 
     public MoneyTransaction fillCategoryOrWallet(MoneyTransaction transaction) {
         return keyWordsToCategoryMap.entrySet().stream()
-                .filter(entry -> transaction.getDescription().contains(entry.getKey()))
+                .filter(entry -> transaction.getDescription().toLowerCase().contains(entry.getKey().toLowerCase()))
                 .findFirst()
                 .map(entry -> enrichCategoryOrWallet(transaction, entry.getValue()))
                 .orElse(transaction);
