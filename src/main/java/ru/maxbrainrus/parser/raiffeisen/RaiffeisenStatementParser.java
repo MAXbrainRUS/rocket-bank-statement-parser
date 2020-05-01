@@ -56,7 +56,9 @@ public class RaiffeisenStatementParser implements StatementParser {
     }
 
     private static OperationType getOperationType(BigDecimal amount, String transactionText) {
-        if (transactionText.contains("перевод") || transactionText.contains("Перевод")) {
+        if (transactionText.contains("перевод") ||
+                transactionText.contains("Перевод") ||
+                transactionText.contains("ATM ")) {
             return OperationType.TRANSFER;
         } else if (amount.signum() > 0) {
             return OperationType.INCOME;
