@@ -1,7 +1,7 @@
 package ru.maxbrainrus.parser;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.maxbrainrus.parser.rocket.RocketPdfParser;
+import ru.maxbrainrus.parser.raiffeisen.RaiffeisenStatementParser;
 import ru.maxbrainrus.report.CsvReportMaker;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 
@@ -19,8 +19,8 @@ public class ReportGeneratorFacade {
                                   Map<String, String> keyWordsToCategoryMap,
                                   @Nullable LocalDate cutDate,
                                   String sourceWallet) {
-        RocketPdfParser rocketPdfParser = new RocketPdfParser(sourceWallet);
-        List<MoneyTransaction> transactions = rocketPdfParser.parsePdf(inputDataFileName);
+        StatementParser statementParser = new RaiffeisenStatementParser();
+        List<MoneyTransaction> transactions = statementParser.parseBankStatement(inputDataFileName, sourceWallet);
         transactions = fillCategoriesAndWallets(keyWordsToCategoryMap, transactions);
         logTransactions(transactions);
         if (cutDate != null) {
