@@ -4,8 +4,8 @@
 
 # Description
 
-"Rocket parser" is a simple program provide converting Rocket Bank's (https://rocketbank.ru/) statement from .pdf format to .csv format.
-It is useful for import your transactions to some programs for budget accounting.
+"Rocket parser" is a simple program provide converting bank's statement to .csv format for some programs for budget accounting (ex. MoneyPro).
+It also support customizing category filling by transaction description.
 
 ## Category filling
 
