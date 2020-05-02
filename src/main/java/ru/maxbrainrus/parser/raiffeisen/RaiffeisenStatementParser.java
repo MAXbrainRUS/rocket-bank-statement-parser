@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -30,17 +31,24 @@ public class RaiffeisenStatementParser implements StatementParser {
     }
 
     @SneakyThrows
-    @Override
-    public List<MoneyTransaction> parseBankStatement(String inputDataFileName, String sourceWallet) {
-        try (FileInputStream in = new FileInputStream(inputDataFileName)) {
-            try (InputStreamReader isr = new InputStreamReader(in, getCharset1251())) {
-                try (CSVParser csvParser = getCsvFormat().parse(isr)) {
-                    return StreamSupport.stream(csvParser.spliterator(), false)
-                            .map(record -> readTransaction(record, sourceWallet))
-                            .collect(Collectors.toList());
+    private static <T> T withOpenCsvFile(String fileName, Charset charset, CSVFormat csvFormat, Function<CSVParser, T> consumer) {
+        try (FileInputStream in = new FileInputStream(fileName)) {
+            try (InputStreamReader isr = new InputStreamReader(in, charset)) {
+                try (CSVParser csvParser = csvFormat.parse(isr)) {
+                    return consumer.apply(csvParser);
                 }
             }
         }
+    }
+
+    @SneakyThrows
+    @Override
+    public List<MoneyTransaction> parseBankStatement(String inputDataFileName, String sourceWallet) {
+        return withOpenCsvFile(inputDataFileName, getCharset1251(), getCsvFormat(),
+                csvParser ->
+                        StreamSupport.stream(csvParser.spliterator(), false)
+                                .map(record -> readTransaction(record, sourceWallet))
+                                .collect(Collectors.toList()));
     }
 
     private static void setWalletValue(MoneyTransaction.MoneyTransactionBuilder builder, String sourceWallet, BigDecimal amount, OperationType operationType) {
