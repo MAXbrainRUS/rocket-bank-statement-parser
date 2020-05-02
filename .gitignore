@@ -7,3 +7,4 @@ KeyWordsToCategoryMap.json
 .project
 .classpath
 target
+*.csv
