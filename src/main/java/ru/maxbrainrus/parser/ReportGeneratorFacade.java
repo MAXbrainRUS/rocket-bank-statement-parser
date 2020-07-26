@@ -43,8 +43,8 @@ public class ReportGeneratorFacade {
     }
 
     private static List<MoneyTransaction> fillCategoriesAndWallets(Map<String, ConfigValue> keyWordsToCategoryMap, List<MoneyTransaction> transactions) {
-        KeyWordCategoryWalletFiller categoryWalletFiller = new KeyWordCategoryWalletFiller(keyWordsToCategoryMap);
-        return categoryWalletFiller.fillCategoryOrWallet(transactions);
+        ConfigFiller categoryWalletFiller = new ConfigFiller(keyWordsToCategoryMap);
+        return categoryWalletFiller.fill(transactions);
     }
 
 }

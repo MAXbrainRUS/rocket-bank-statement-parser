@@ -10,11 +10,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class KeyWordCategoryWalletFiller {
-    private final Map<String, ConfigValue> keyWordsToCategoryMap;
+public class ConfigFiller {
+    private final Map<String, ConfigValue> keyWordsToConfigMap;
 
-    public KeyWordCategoryWalletFiller(Map<String, ConfigValue> keyWordsToCategoryMap) {
-        this.keyWordsToCategoryMap = keyWordsToCategoryMap;
+    public ConfigFiller(Map<String, ConfigValue> keyWordsToConfigMap) {
+        this.keyWordsToConfigMap = keyWordsToConfigMap;
     }
 
     private static MoneyTransaction enrichCategoryOrWallet(MoneyTransaction transaction, String categoryOrWallet) {
@@ -46,17 +46,17 @@ public class KeyWordCategoryWalletFiller {
         return transaction;
     }
 
-    public MoneyTransaction fillCategoryOrWallet(MoneyTransaction transaction) {
-        return keyWordsToCategoryMap.entrySet().stream()
+    private MoneyTransaction fillTransaction(MoneyTransaction transaction) {
+        return keyWordsToConfigMap.entrySet().stream()
                 .filter(entry -> transaction.getDescription().toLowerCase().contains(entry.getKey().toLowerCase()))
                 .findFirst()
                 .map(entry -> enrichCategoryOrWallet(transaction, entry.getValue().getCategory()))
                 .orElse(transaction);
     }
 
-    public List<MoneyTransaction> fillCategoryOrWallet(List<MoneyTransaction> transactionList) {
+    public List<MoneyTransaction> fill(List<MoneyTransaction> transactionList) {
         return transactionList.stream()
-                .map(this::fillCategoryOrWallet)
+                .map(this::fillTransaction)
                 .collect(Collectors.toList());
     }
 
