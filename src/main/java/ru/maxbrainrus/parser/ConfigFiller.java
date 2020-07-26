@@ -46,11 +46,21 @@ public class ConfigFiller {
         return transaction;
     }
 
+    private MoneyTransaction fillWithConfig(MoneyTransaction transaction, ConfigValue config) {
+        MoneyTransaction res = enrichCategoryOrWallet(transaction, config.getCategory());
+        if (config.getAdditionalDescription() != null) {
+            res = transaction.toBuilder()
+                    .description(String.format("%s (%s)", config.getAdditionalDescription(), transaction.getDescription()))
+                    .build();
+        }
+        return res;
+    }
+
     private MoneyTransaction fillTransaction(MoneyTransaction transaction) {
         return keyWordsToConfigMap.entrySet().stream()
                 .filter(entry -> transaction.getDescription().toLowerCase().contains(entry.getKey().toLowerCase()))
                 .findFirst()
-                .map(entry -> enrichCategoryOrWallet(transaction, entry.getValue().getCategory()))
+                .map(entry -> fillWithConfig(transaction, entry.getValue()))
                 .orElse(transaction);
     }
 
@@ -59,6 +69,4 @@ public class ConfigFiller {
                 .map(this::fillTransaction)
                 .collect(Collectors.toList());
     }
-
-
 }
