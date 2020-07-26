@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+import ru.maxbrainrus.config.ConfigValue;
 import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 import ru.maxbrainrus.parser.ReportGeneratorFacade;
 
@@ -64,7 +65,7 @@ public class CommandLineRunner implements Runnable {
     @Override
     public void run() {
         setLoggerLevel();
-        Map<String, String> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
+        Map<String, ConfigValue> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
         LocalDate cutDate = parseCutDate(cutDateStringValue);
         ReportGeneratorFacade.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet);
     }
@@ -76,7 +77,7 @@ public class CommandLineRunner implements Runnable {
         }
     }
 
-    private Map<String, String> getKeyWordsToCategoryOrWalletMapping() {
+    private Map<String, ConfigValue> getKeyWordsToCategoryOrWalletMapping() {
         return getConfigFileMapKeyWordsToCategory()
                 .map(KeyWordsToCategoryMapJsonParser::parseConfigJson)
                 .orElse(Collections.emptyMap());
