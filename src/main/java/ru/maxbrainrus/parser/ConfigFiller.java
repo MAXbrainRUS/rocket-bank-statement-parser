@@ -5,8 +5,10 @@ import ru.maxbrainrus.config.ConfigValue;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 import ru.maxbrainrus.transaction.OperationType;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,21 +48,30 @@ public class ConfigFiller {
         return transaction;
     }
 
-    private MoneyTransaction fillWithConfig(MoneyTransaction transaction, ConfigValue config) {
-        MoneyTransaction res = enrichCategoryOrWallet(transaction, config.getCategory());
-        if (config.getAdditionalDescription() != null) {
-            res = transaction.toBuilder()
-                    .description(String.format("%s (%s)", config.getAdditionalDescription(), transaction.getDescription()))
-                    .build();
-        }
-        return res;
+    private MoneyTransaction fillFromConfig(MoneyTransaction transaction, ConfigValue config) {
+        return Optional.of(transaction)
+                .map(tr -> enrichCategoryOrWallet(tr, config.getCategory()))
+                .map(tr -> enrichWithAdditionalDescriptionIfExist(tr, config.getAdditionalDescription()))
+                .orElseThrow(RuntimeException::new);
+    }
+
+    private MoneyTransaction enrichWithAdditionalDescriptionIfExist(MoneyTransaction tr, @Nullable String additionalDescription) {
+        return Optional.ofNullable(additionalDescription)
+                .map(description -> enrichWithAdditionalDescription(tr, description))
+                .orElse(tr);
+    }
+
+    private MoneyTransaction enrichWithAdditionalDescription(MoneyTransaction tr, String additionalDescription) {
+        return tr.toBuilder()
+                .description(String.format("%s (%s)", additionalDescription, tr.getDescription()))
+                .build();
     }
 
     private MoneyTransaction fillTransaction(MoneyTransaction transaction) {
         return keyWordsToConfigMap.entrySet().stream()
                 .filter(entry -> transaction.getDescription().toLowerCase().contains(entry.getKey().toLowerCase()))
                 .findFirst()
-                .map(entry -> fillWithConfig(transaction, entry.getValue()))
+                .map(entry -> fillFromConfig(transaction, entry.getValue()))
                 .orElse(transaction);
     }
 
