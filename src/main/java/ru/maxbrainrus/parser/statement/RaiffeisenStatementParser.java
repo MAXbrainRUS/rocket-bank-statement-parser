@@ -1,4 +1,4 @@
-package ru.maxbrainrus.parser.raiffeisen;
+package ru.maxbrainrus.parser.statement;
 
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;

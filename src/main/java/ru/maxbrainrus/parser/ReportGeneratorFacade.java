@@ -2,7 +2,7 @@ package ru.maxbrainrus.parser;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.config.ConfigValue;
-import ru.maxbrainrus.parser.raiffeisen.RaiffeisenStatementParser;
+import ru.maxbrainrus.parser.statement.RaiffeisenStatementParser;
 import ru.maxbrainrus.report.CsvReportMaker;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 
