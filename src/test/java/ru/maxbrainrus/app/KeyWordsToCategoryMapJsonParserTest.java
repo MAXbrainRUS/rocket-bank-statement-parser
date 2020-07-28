@@ -1,34 +1,27 @@
 package ru.maxbrainrus.app;
 
-import org.apache.commons.io.IOUtils;
 import org.testng.annotations.Test;
 import ru.maxbrainrus.config.ConfigValue;
 import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.net.URL;
 import java.util.*;
 
 import static org.testng.Assert.assertEquals;
 
 public class KeyWordsToCategoryMapJsonParserTest {
 
-    private static Map<String, ConfigValue> getConfigMapFromResources(String resourceMap) throws IOException {
-        File testConfigCategoryMap = File.createTempFile("testConfigCategoryMap", ".json");
-        try (FileWriter fileWriter = new FileWriter(testConfigCategoryMap)) {
-            InputStream resourceAsStream = KeyWordsToCategoryMapJsonParserTest.class.getResourceAsStream(resourceMap);
-            String configStringValue = IOUtils.toString(resourceAsStream, StandardCharsets.UTF_8);
-            fileWriter.write(configStringValue);
-        }
-        return KeyWordsToCategoryMapJsonParser.parseConfigJson(testConfigCategoryMap);
+    private static Map<String, ConfigValue> getConfigMapFromResources(String resourcePath) throws IOException {
+        URL resourceUrl = Thread.currentThread().getContextClassLoader().getResource(resourcePath);
+        File configFile = new File(resourceUrl.getPath());
+        return KeyWordsToCategoryMapJsonParser.parseConfigJson(configFile);
     }
 
     @Test
     public void testParseConfigJsonSaveOrder() throws IOException {
-        Map<String, ConfigValue> configMap = getConfigMapFromResources("/KeyWordsToCategoryMapExample.json");
+        Map<String, ConfigValue> configMap = getConfigMapFromResources("KeyWordsToCategoryMapExample.json");
 
         List<Map.Entry<String, ConfigValue>> expectedValues = Arrays.asList(
                 new AbstractMap.SimpleEntry<>("category1", configValue("Value1")),
