@@ -42,9 +42,4 @@ public class RaiffeisenStatementParserTest {
                 .sourceWallet("testWallet")
                 .build();
     }
-
-    private MoneyTransaction getTransaction() {
-        return MoneyTransaction.builder()
-                .build();
-    }
 }
