@@ -11,6 +11,7 @@ import ru.maxbrainrus.transaction.MoneyTransaction;
 import ru.maxbrainrus.transaction.OperationType;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
@@ -31,20 +32,29 @@ public class RaiffeisenStatementParser implements StatementParser {
     }
 
     @SneakyThrows
-    private static <T> T withOpenCsvFile(String fileName, Charset charset, CSVFormat csvFormat, Function<CSVParser, T> consumer) {
+    private static <T> T withOpenFile(String fileName, Function<InputStream, T> consumer) {
         try (FileInputStream in = new FileInputStream(fileName)) {
-            try (InputStreamReader isr = new InputStreamReader(in, charset)) {
-                try (CSVParser csvParser = csvFormat.parse(isr)) {
-                    return consumer.apply(csvParser);
-                }
-            }
+            return consumer.apply(in);
         }
     }
 
     @SneakyThrows
+    private static <T> T withParseInputStream(InputStream in, Charset charset, CSVFormat csvFormat, Function<CSVParser, T> consumer) {
+        try (InputStreamReader isr = new InputStreamReader(in, charset)) {
+            try (CSVParser csvParser = csvFormat.parse(isr)) {
+                return consumer.apply(csvParser);
+            }
+        }
+    }
+
     @Override
     public List<MoneyTransaction> parseBankStatement(String inputDataFileName, String sourceWallet) {
-        return withOpenCsvFile(inputDataFileName, getCharset1251(), getCsvFormat(),
+        return withOpenFile(inputDataFileName, inputStream ->
+                parseBankStatement(inputStream, sourceWallet));
+    }
+
+    public List<MoneyTransaction> parseBankStatement(InputStream inputData, String sourceWallet) {
+        return withParseInputStream(inputData, getCharset1251(), getCsvFormat(),
                 csvParser ->
                         StreamSupport.stream(csvParser.spliterator(), false)
                                 .map(record -> readTransaction(record, sourceWallet))

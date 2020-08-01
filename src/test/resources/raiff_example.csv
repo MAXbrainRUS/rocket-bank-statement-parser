@@ -1,0 +1,6 @@
+Дата транзакции;Описание;Валюта операции;Сумма в валюте операции;Валюта счета;Сумма в валюте счета
+01.02.2000 00:00;some old transaction;RUB;-1 000.01;RUB;-1 000.01
+01.02.2003 00:00;SOME TRANSACTION DESCRIPTION;RUB;-1 234.56;RUB;-1 234.56
+02.03.2004 00:00;"""some transaction with quotes"" and other text";RUB;-234.00;RUB;-234.00
+03.04.2005 00:00;transfer money from one account to another;RUB;40 000.00;RUB;40 000.00
+05.06.2020 00:00;rollback money;RUB;2 499.00;RUB;2 499.00
