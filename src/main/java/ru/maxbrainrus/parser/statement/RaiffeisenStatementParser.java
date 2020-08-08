@@ -1,8 +1,5 @@
 package ru.maxbrainrus.parser.statement;
 
-import lombok.SneakyThrows;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import ru.maxbrainrus.parser.StatementParser;
 import ru.maxbrainrus.transaction.AmountWithCcy;
@@ -10,55 +7,31 @@ import ru.maxbrainrus.transaction.Amounts;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 import ru.maxbrainrus.transaction.OperationType;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
-public class RaiffeisenStatementParser implements StatementParser {
+public class RaiffeisenStatementParser extends CsvStatementParser implements StatementParser {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-    private static Charset getCharset1251() {
-        return Charset.forName("windows-1251");
-    }
-
-    @SneakyThrows
-    private static <T> T withOpenFile(String fileName, Function<InputStream, T> consumer) {
-        try (FileInputStream in = new FileInputStream(fileName)) {
-            return consumer.apply(in);
-        }
-    }
-
-    @SneakyThrows
-    private static <T> T withParseInputStream(InputStream in, Charset charset, CSVFormat csvFormat, Function<CSVParser, T> consumer) {
-        try (InputStreamReader isr = new InputStreamReader(in, charset)) {
-            try (CSVParser csvParser = csvFormat.parse(isr)) {
-                return consumer.apply(csvParser);
-            }
-        }
-    }
-
     @Override
-    public List<MoneyTransaction> parseBankStatement(String inputDataFileName, String sourceWallet) {
-        return withOpenFile(inputDataFileName, inputStream ->
-                parseBankStatement(inputStream, sourceWallet));
-    }
+    protected MoneyTransaction readTransaction(CSVRecord record, String sourceWallet) {
+        BigDecimal amount = readAmount(record);
+        String description = getDescription(record);
+        OperationType operationType = getOperationType(amount, description);
 
-    public List<MoneyTransaction> parseBankStatement(InputStream inputData, String sourceWallet) {
-        return withParseInputStream(inputData, getCharset1251(), getCsvFormat(),
-                csvParser ->
-                        StreamSupport.stream(csvParser.spliterator(), false)
-                                .map(record -> readTransaction(record, sourceWallet))
-                                .collect(Collectors.toList()));
+        MoneyTransaction.MoneyTransactionBuilder moneyTransactionBuilder = MoneyTransaction.builder()
+                .date(getOperationDate(record))
+                .amounts(getAmount(amount.abs()))
+                .description(description)
+                .operationType(operationType);
+
+        setWalletValue(moneyTransactionBuilder, sourceWallet, amount, operationType);
+
+        return moneyTransactionBuilder
+                .build();
     }
 
     private static void setWalletValue(MoneyTransaction.MoneyTransactionBuilder builder, String sourceWallet, BigDecimal amount, OperationType operationType) {
@@ -83,23 +56,6 @@ public class RaiffeisenStatementParser implements StatementParser {
         } else {
             return OperationType.EXPENDITURE;
         }
-    }
-
-    private MoneyTransaction readTransaction(CSVRecord record, String sourceWallet) {
-        BigDecimal amount = readAmount(record);
-        String description = getDescription(record);
-        OperationType operationType = getOperationType(amount, description);
-
-        MoneyTransaction.MoneyTransactionBuilder moneyTransactionBuilder = MoneyTransaction.builder()
-                .date(getOperationDate(record))
-                .amounts(getAmount(amount.abs()))
-                .description(description)
-                .operationType(operationType);
-
-        setWalletValue(moneyTransactionBuilder, sourceWallet, amount, operationType);
-
-        return moneyTransactionBuilder
-                .build();
     }
 
     private String getDescription(CSVRecord record) {
@@ -134,11 +90,5 @@ public class RaiffeisenStatementParser implements StatementParser {
         } else {
             throw new IllegalArgumentException();
         }
-    }
-
-    private CSVFormat getCsvFormat() {
-        return CSVFormat.DEFAULT
-                .withDelimiter(';')
-                .withFirstRecordAsHeader();
     }
 }
