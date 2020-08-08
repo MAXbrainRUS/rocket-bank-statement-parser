@@ -9,6 +9,7 @@ import picocli.CommandLine;
 import ru.maxbrainrus.config.ConfigValue;
 import ru.maxbrainrus.config.KeyWordsToCategoryMapJsonParser;
 import ru.maxbrainrus.parser.ReportGeneratorFacade;
+import ru.maxbrainrus.parser.statement.BankFormatType;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -45,6 +46,11 @@ public class CommandLineRunner implements Runnable {
             defaultValue = "report.csv")
     private String reportFilename;
 
+    @CommandLine.Option(names = {"-b", "--bank_format"},
+            description = "Bank statement format type",
+            defaultValue = "RAIF")
+    private BankFormatType bankFormatType;
+
     @CommandLine.Option(names = {"-q", "--quiet"},
             description = "Quiet output - only show errors")
     private boolean isQuiet;
@@ -67,7 +73,7 @@ public class CommandLineRunner implements Runnable {
         setLoggerLevel();
         Map<String, ConfigValue> keyWordsToCategoryOrWalletMap = getKeyWordsToCategoryOrWalletMapping();
         LocalDate cutDate = parseCutDate(cutDateStringValue);
-        ReportGeneratorFacade.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet);
+        ReportGeneratorFacade.makeReport(sourceStatementFilename, reportFilename, keyWordsToCategoryOrWalletMap, cutDate, sourceWallet, bankFormatType);
     }
 
     private void setLoggerLevel() {

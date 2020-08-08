@@ -1,7 +1,6 @@
 package ru.maxbrainrus.parser.statement;
 
 import org.apache.commons.csv.CSVRecord;
-import ru.maxbrainrus.parser.StatementParser;
 import ru.maxbrainrus.transaction.AmountWithCcy;
 import ru.maxbrainrus.transaction.Amounts;
 import ru.maxbrainrus.transaction.MoneyTransaction;
@@ -12,7 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class RaiffeisenStatementParser extends CsvStatementParser implements StatementParser {
+public class RaiffeisenStatementParser extends CsvStatementParser implements BankStatementParser {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 

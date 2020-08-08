@@ -2,7 +2,9 @@ package ru.maxbrainrus.parser;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.maxbrainrus.config.ConfigValue;
-import ru.maxbrainrus.parser.statement.RaiffeisenStatementParser;
+import ru.maxbrainrus.parser.statement.BankFormatType;
+import ru.maxbrainrus.parser.statement.BankStatementParser;
+import ru.maxbrainrus.parser.statement.BankStatementParserFactory;
 import ru.maxbrainrus.report.CsvReportMaker;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 
@@ -19,9 +21,10 @@ public class ReportGeneratorFacade {
                                   String reportFileName,
                                   Map<String, ConfigValue> keyWordsToCategoryMap,
                                   @Nullable LocalDate cutDate,
-                                  String sourceWallet) {
-        StatementParser statementParser = new RaiffeisenStatementParser();
-        List<MoneyTransaction> transactions = statementParser.parseBankStatement(inputDataFileName, sourceWallet);
+                                  String sourceWallet,
+                                  BankFormatType bankFormatType) {
+        BankStatementParser bankStatementParser = BankStatementParserFactory.createBankStatementParser(bankFormatType);
+        List<MoneyTransaction> transactions = bankStatementParser.parseBankStatement(inputDataFileName, sourceWallet);
         transactions = fillCategoriesAndWallets(keyWordsToCategoryMap, transactions);
         logTransactions(transactions);
         if (cutDate != null) {

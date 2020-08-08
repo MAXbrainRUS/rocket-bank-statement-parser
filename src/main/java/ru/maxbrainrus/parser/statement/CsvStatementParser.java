@@ -4,7 +4,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import ru.maxbrainrus.parser.StatementParser;
 import ru.maxbrainrus.transaction.MoneyTransaction;
 
 import java.io.FileInputStream;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public abstract class CsvStatementParser implements StatementParser {
+public abstract class CsvStatementParser implements BankStatementParser {
     private static Charset getCharset1251() {
         return Charset.forName("windows-1251");
     }
