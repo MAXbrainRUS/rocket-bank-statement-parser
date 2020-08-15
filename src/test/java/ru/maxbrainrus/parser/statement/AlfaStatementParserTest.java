@@ -17,9 +17,9 @@ import static org.testng.Assert.assertEquals;
 public class AlfaStatementParserTest {
     @Test
     public void testCsvExample() {
-        AlfaStatementParser raifParser = new AlfaStatementParser();
+        AlfaStatementParser alfaParser = new AlfaStatementParser();
         InputStream testData = AlfaStatementParserTest.class.getResourceAsStream("/alfa_example.csv");
-        List<MoneyTransaction> actualTransactions = raifParser.parseBankStatement(testData, "testWalletA");
+        List<MoneyTransaction> actualTransactions = alfaParser.parseBankStatement(testData, "testWalletA");
         List<MoneyTransaction> expectedTransactions = Arrays.asList(
                 getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2001, 1, 1), "Some old operation", "1234.5"),
                 getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2003, 2, 1), "RU SOME.SERVICE", "100"),
