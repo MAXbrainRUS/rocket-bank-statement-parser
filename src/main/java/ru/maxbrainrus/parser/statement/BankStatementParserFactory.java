@@ -5,6 +5,8 @@ public class BankStatementParserFactory {
         switch (bankFormatType) {
             case RAIF:
                 return new RaiffeisenStatementParser();
+            case ALFA:
+                return new AlfaStatementParser();
             default:
                 throw new IllegalArgumentException(String.format("Unsupported BankFormatType: %s", bankFormatType));
         }
