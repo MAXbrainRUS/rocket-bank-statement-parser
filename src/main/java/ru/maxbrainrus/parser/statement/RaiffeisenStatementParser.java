@@ -48,7 +48,8 @@ public class RaiffeisenStatementParser extends CsvStatementParser implements Ban
     private static OperationType getOperationType(BigDecimal amount, String transactionText) {
         if (transactionText.contains("перевод") ||
                 transactionText.contains("Перевод") ||
-                transactionText.contains("ATM ")) {
+                transactionText.contains("ATM ") ||
+                transactionText.contains("CARD2CARD")) {
             return OperationType.TRANSFER;
         } else if (amount.signum() > 0) {
             return OperationType.INCOME;
