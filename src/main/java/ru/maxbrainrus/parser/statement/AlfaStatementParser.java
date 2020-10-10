@@ -7,7 +7,6 @@ import ru.maxbrainrus.transaction.MoneyTransaction;
 import ru.maxbrainrus.transaction.OperationType;
 
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -20,11 +19,9 @@ import java.util.stream.Stream;
 
 public class AlfaStatementParser extends CsvStatementParser implements BankStatementParser {
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy");
     private static final Pattern DATE_REGEX_PATTERN = Pattern.compile("\\d{2}\\.\\d{2}\\.\\d{2}");
     private static final Pattern CARD_NUMBER_PATTERN = Pattern.compile("\\d{4,}\\++\\d{4}");
-    public static final String DATE_HEADER_HAME = "Дата";
-    public static final String DATE_HEADER_NAME_WITH_BOM = withBom(DATE_HEADER_HAME);
 
     private static String splitAndGetLast(String input, String regex) {
         String[] strings = input.split(regex);
@@ -80,17 +77,20 @@ public class AlfaStatementParser extends CsvStatementParser implements BankState
     }
 
     private String getUsefulDescription(String rawDescription) {
-        return Optional.of(rawDescription)
-                .map(s -> s.replaceAll("\\d+\\.\\d{2} RUR", ""))
-                .map(s -> splitAndGetFirst(s, ">"))
-                .map(s -> splitAndGetLast(s, "/"))
-                .map(s -> splitAndGetLast(s, "\\\\"))
-                .map(String::trim)
-                .get();
+        if (CARD_NUMBER_PATTERN.matcher(rawDescription).find()) {
+            return Optional.of(rawDescription)
+                    .map(s -> splitAndGetFirst(s, ">"))
+                    .map(s -> splitAndGetLast(s, "/"))
+                    .map(s -> splitAndGetLast(s, "\\\\"))
+                    .map(s -> splitAndGetFirst(s, "  "))
+                    .map(String::trim)
+                    .get();
+        }
+        return rawDescription;
     }
 
     private String getRawDescription(CSVRecord record) {
-        return record.get("Примечание");
+        return record.get("Описание операции");
     }
 
     private Amounts convertToAmounts(BigDecimal amount) {
@@ -104,7 +104,7 @@ public class AlfaStatementParser extends CsvStatementParser implements BankState
 
     private BigDecimal readAmount(CSVRecord record) {
         return Stream.of(
-                getAmount(record, "Расход", false),
+                getAmount(record, "Расход", true),
                 getAmount(record, "Приход", false)
         )
                 .filter(Objects::nonNull)
@@ -114,36 +114,17 @@ public class AlfaStatementParser extends CsvStatementParser implements BankState
     }
 
     private BigDecimal getAmount(CSVRecord record, String fieldName, boolean invertSign) {
-        if (!record.isMapped(fieldName)) {
-            return null;
+        if (record.isMapped(fieldName)) {
+            String amountStringValue = record.get(fieldName).replaceAll(",", ".");
+            BigDecimal amountValue = new BigDecimal(amountStringValue);
+            return invertSign ? amountValue.negate() : amountValue;
         }
-        String amountStringValue = record.get(fieldName)
-                .replaceAll(",", ".")
-                .replaceAll(" ", "");
-        if (amountStringValue.isEmpty()) {
-            return null;
-        }
-
-        BigDecimal amountValue = new BigDecimal(amountStringValue);
-        return invertSign ? amountValue.negate() : amountValue;
+        return null;
     }
 
     private LocalDate getOperationDate(String rawDescription, CSVRecord record) {
         return getOperationDateFromDescription(rawDescription)
-                .orElseGet(() -> convertToDate(getDate(record)));
-    }
-
-    private String getDate(CSVRecord record) {
-        if (record.isMapped(DATE_HEADER_HAME)) {
-            return record.get(DATE_HEADER_HAME);
-        } else if (record.isMapped(DATE_HEADER_NAME_WITH_BOM)) {
-            return record.get(DATE_HEADER_NAME_WITH_BOM);
-        }
-        throw new IllegalArgumentException(String.format("Can't find %s column in %s", DATE_HEADER_HAME, record));
-    }
-
-    private static String withBom(String s) {
-        return "\uFEFF" + s;
+                .orElseGet(() -> convertToDate(record.get("Дата операции")));
     }
 
     private Optional<LocalDate> getOperationDateFromDescription(String rawDescription) {
@@ -157,10 +138,5 @@ public class AlfaStatementParser extends CsvStatementParser implements BankState
                 .map(AlfaStatementParser::convertToDate)
                 .sorted()
                 .findFirst();
-    }
-
-    @Override
-    protected Charset getCharset() {
-        return getCharsetUtf8();
     }
 }
