@@ -23,7 +23,7 @@ public class AlfaStatementParserTest {
         List<MoneyTransaction> expectedTransactions = Arrays.asList(
                 getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2001, 1, 1), "Some old operation", "1234.5"),
                 getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2003, 2, 1), "RU SOME.SERVICE", "100"),
-                getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2003, 2, 2), "SOME SRVS2", "200.4"),
+                getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2003, 2, 1), "SOME SRVS2", "200.4"),
                 getTransactionExample(OperationType.TRANSFER, LocalDate.of(2004, 2, 3), "Внутрибанковский перевод между счетами, ИВАНОВ И. И.", "500"),
                 getTransactionExample(OperationType.TRANSFER, LocalDate.of(2004, 2, 4), "CARD2CARD ALFA_MOBILE", "600", true),
                 getTransactionExample(OperationType.EXPENDITURE, LocalDate.of(2004, 3, 5), "Some other operation", "700.7"),
